@@ -773,6 +773,7 @@
     const container = $('#readContainer');
     if (!container) return;
     showView('read');
+    state.readLang = state.readLang || 'fa'; // 'fa', 'en', or 'both'
     renderReadView(sectionId || null);
   }
 
@@ -780,32 +781,51 @@
     const container = $('#readContainer');
     if (!container) return;
 
+    const readLang = state.readLang || 'fa';
+    const isFa = readLang === 'fa';
+    const isBoth = readLang === 'both';
+    const showFa = isFa || isBoth;
+    const showEn = !isFa || isBoth;
+
     let tocHtml = '<div class="read-toc">';
     tocHtml += '<div class="read-toc-header">📑 فهرست مطالب<br><small>Table of Contents</small></div>';
+    tocHtml += '<div class="read-lang-toggle">';
+    tocHtml += '<button class="read-lang-btn' + (readLang === 'fa' ? ' active' : '') + '" onclick="switchReadLang(\'fa\')">فارسی</button>';
+    tocHtml += '<button class="read-lang-btn' + (readLang === 'en' ? ' active' : '') + '" onclick="switchReadLang(\'en\')">English</button>';
+    tocHtml += '<button class="read-lang-btn' + (readLang === 'both' ? ' active' : '') + '" onclick="switchReadLang(\'both\')">هر دو / Both</button>';
+    tocHtml += '</div>';
     tocHtml += '<div class="read-toc-back"><button onclick="showView(\'home\')">← بازگشت</button></div>';
 
     let contentHtml = '<div class="read-content">';
     contentHtml += '<div class="read-intro">';
-    contentHtml += '<h1 class="read-main-title">🇬🇧 کد بزرگراه بریتانیا</h1>';
-    contentHtml += '<p class="read-subtitle">The Highway Code — نسخه کامل فارسی</p>';
-    contentHtml += '<p class="read-intro-text">این نسخه شامل تمام ۱۵ بخش از قوانین راهنمایی و رانندگی بریتانیا به زبان فارسی با ترجمه انگلیسی است.</p>';
-    contentHtml += '<p class="read-intro-text-en">This edition covers all 15 sections of the UK Highway Code in Farsi with English translations.</p>';
+    if (isFa || isBoth) {
+      contentHtml += '<h1 class="read-main-title">🇬🇧 کد بزرگراه بریتانیا</h1>';
+      contentHtml += '<p class="read-subtitle">نسخه کامل فارسی</p>';
+    }
+    if (isEn) {
+      contentHtml += '<h1 class="read-main-title">🇬🇧 The Highway Code</h1>';
+      contentHtml += '<p class="read-subtitle">Full English Edition</p>';
+    }
     contentHtml += '<div class="read-stats-row">';
     const totalRules = Object.values(RULES).reduce((s, r) => s + (r.rules || []).length, 0);
     const totalSections = Object.keys(RULES).length;
-    contentHtml += `<div class="read-stat"><span class="read-stat-num">${totalSections}</span><span class="read-stat-label">بخش</span></div>`;
-    contentHtml += `<div class="read-stat"><span class="read-stat-num">${totalRules}</span><span class="read-stat-label">قانون</span></div>`;
-    contentHtml += `<div class="read-stat"><span class="read-stat-num">47</span><span class="read-stat-label">آزمون</span></div>`;
+    const statLabel = isEn ? 'Sections' : 'بخش';
+    const ruleLabel = isEn ? 'Rules' : 'قانون';
+    const quizLabel = isEn ? 'Quizzes' : 'آزمون';
+    contentHtml += `<div class="read-stat"><span class="read-stat-num">${totalSections}</span><span class="read-stat-label">${statLabel}</span></div>`;
+    contentHtml += `<div class="read-stat"><span class="read-stat-num">${totalRules}</span><span class="read-stat-label">${ruleLabel}</span></div>`;
+    contentHtml += `<div class="read-stat"><span class="read-stat-num">47</span><span class="read-stat-label">${quizLabel}</span></div>`;
     contentHtml += '</div></div>';
 
     Object.entries(RULES).forEach(([key, section], idx) => {
-      const title = state.lang === 'en' ? (section.titleEn || section.title) : section.title;
+      const title = showEn && !showFa ? (section.titleEn || section.title) : section.title;
+      const titleEn = section.titleEn;
       const rules = section.rules || [];
 
       // TOC entry
       tocHtml += `<a class="read-toc-item ${scrollToSection === key ? 'active' : ''}" href="#read-${key}" onclick="document.getElementById('read-${key}').scrollIntoView({behavior:'smooth'}); return false;">`;
       tocHtml += `<span class="read-toc-num">${idx + 1}</span>`;
-      tocHtml += `<span class="read-toc-text">${title}</span>`;
+      tocHtml += `<span class="read-toc-text">${showEn && !showFa ? titleEn : title}</span>`;
       tocHtml += `<span class="read-toc-count">${rules.length}</span>`;
       tocHtml += '</a>';
 
@@ -813,26 +833,30 @@
       contentHtml += `<section class="read-section" id="read-${key}">`;
       contentHtml += `<div class="read-section-header">`;
       contentHtml += `<span class="read-section-num">${idx + 1}</span>`;
-      contentHtml += `<div>`;
-      contentHtml += `<h2 class="read-section-title">${section.title}</h2>`;
-      contentHtml += `<p class="read-section-title-en">${section.titleEn}</p>`;
+      contentHtml += '<div>';
+      if (showFa) contentHtml += `<h2 class="read-section-title">${section.title}</h2>`;
+      if (showEn) contentHtml += `<p class="read-section-title-en">${titleEn}</p>`;
       contentHtml += `</div>`;
-      contentHtml += `<button class="read-speak-section" data-section="${key}" title="Listen to section">🔊</button>`;
       contentHtml += `</div>`;
 
       rules.forEach((rule, ri) => {
         contentHtml += `<div class="read-rule" id="rule-${key}-${ri}">`;
-        contentHtml += `<div class="read-rule-num">قانون ${rule.num}</div>`;
-        contentHtml += `<div class="read-rule-fa">${rule.fa}</div>`;
-        contentHtml += `<div class="read-rule-en">${rule.en}</div>`;
+        const numLabel = isEn ? `Rule ${rule.num}` : `قانون ${rule.num}`;
+        contentHtml += `<div class="read-rule-num">${numLabel}</div>`;
+        if (showFa) contentHtml += `<div class="read-rule-fa">${rule.fa}</div>`;
+        if (showEn) contentHtml += `<div class="read-rule-en">${rule.en}</div>`;
 
-        if (rule.warningFa) {
+        if (showFa && rule.warningFa) {
           contentHtml += `<div class="read-warning">⚠️ ${rule.warningFa}</div>`;
-          contentHtml += `<div class="read-warning-en">⚠️ ${rule.warningEn || ''}</div>`;
         }
-        if (rule.tipFa) {
+        if (showEn && rule.warningEn) {
+          contentHtml += `<div class="read-warning-en">⚠️ ${rule.warningEn}</div>`;
+        }
+        if (showFa && rule.tipFa) {
           contentHtml += `<div class="read-tip">💡 ${rule.tipFa}</div>`;
-          contentHtml += `<div class="read-tip-en">💡 ${rule.tipEn || ''}</div>`;
+        }
+        if (showEn && rule.tipEn) {
+          contentHtml += `<div class="read-tip-en">💡 ${rule.tipEn}</div>`;
         }
         contentHtml += '</div>';
       });
@@ -840,8 +864,10 @@
       // Quiz for this section
       if (section.quiz && section.quiz.length > 0) {
         contentHtml += `<div class="read-quiz-section">`;
-        contentHtml += `<h3 class="read-quiz-title">📝 آزمون بخش ${idx + 1}</h3>`;
-        contentHtml += `<button class="read-quiz-btn" onclick="openQuizView('${key}')">شروع آزمون / Take Quiz</button>`;
+        const quizTitle = isEn ? `Section ${idx + 1} Quiz` : `آزمون بخش ${idx + 1}`;
+        const quizBtn = isEn ? 'Take Quiz' : 'شروع آزمون';
+        contentHtml += `<h3 class="read-quiz-title">📝 ${quizTitle}</h3>`;
+        contentHtml += `<button class="read-quiz-btn" onclick="openQuizView('${key}')">${quizBtn}</button>`;
         contentHtml += `</div>`;
       }
 
@@ -849,24 +875,14 @@
     });
 
     tocHtml += '</div>';
+    const footerTitle = isEn ? 'UK Highway Code — Educational Edition' : '🇬🇧 کد بزرگراه بریتانیا — نسخه آموزشی فارسی';
+    const disclaimer = isEn ? '⚠️ This is an educational version. For the official version, visit gov.uk.' : '⚠️ این یک نسخه آموزشی است. برای نسخه رسمی به gov.uk مراجعه کنید.';
     contentHtml += '<div class="read-footer">';
-    contentHtml += '<p>🇬🇧 کد بزرگراه بریتانیا — نسخه آموزشی فارسی</p>';
-    contentHtml += '<p class="read-footer-en">UK Highway Code — Educational Farsi Edition</p>';
-    contentHtml += '<p class="read-footer-disclaimer">⚠️ این یک نسخه آموزشی است. برای نسخه رسمی به gov.uk مراجعه کنید.</p>';
+    contentHtml += `<p>${footerTitle}</p>`;
+    contentHtml += `<p class="read-footer-disclaimer">${disclaimer}</p>`;
     contentHtml += '</div></div>';
 
     container.innerHTML = tocHtml + contentHtml;
-
-    // Bind section speaker buttons
-    $$('.read-speak-section').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sectionKey = btn.dataset.section;
-        const section = RULES[sectionKey];
-        if (!section || !section.rules) return;
-        const text = section.rules.map(r => r.fa).join('. ');
-        speakText(text);
-      });
-    });
 
     // Scroll to section if requested
     if (scrollToSection) {
@@ -876,6 +892,14 @@
       }, 100);
     }
   }
+
+  // Expose to global for inline onclick
+  window.switchReadLang = function(lang) {
+    state.readLang = lang;
+    const section = document.querySelector('.read-section.active');
+    const scrollId = section ? section.id.replace('read-', '') : null;
+    renderReadView(scrollId);
+  };
 
   // =============================================
   // FLASHCARD MODE
