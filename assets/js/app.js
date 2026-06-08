@@ -204,7 +204,7 @@
   // BOTTOM NAV
   // =============================================
   function updateBottomNav(active) {
-    const map = { home: 'navHome', flashcards: 'navFlashcards', progress: 'navProgress' };
+    const map = { home: 'navHome', read: 'navRead', flashcards: 'navFlashcards', progress: 'navProgress' };
     const activeId = map[active] || 'navHome';
     $$('.bottom-nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.id === activeId);
@@ -235,6 +235,11 @@
     if (!container) return;
     container.innerHTML = `
       <div class="quick-actions">
+        <button class="quick-action-btn" id="btnRead">
+          <span class="quick-action-icon">📖</span>
+          <span class="quick-action-label">مطالعه کامل</span>
+          <span class="quick-action-label-en">Read Full Book</span>
+        </button>
         <button class="quick-action-btn" id="btnFlashcards">
           <span class="quick-action-icon">🔄</span>
           <span class="quick-action-label">فلش‌کارت</span>
@@ -247,6 +252,7 @@
         </button>
       </div>
     `;
+    $('#btnRead').addEventListener('click', () => openReadView());
     $('#btnFlashcards').addEventListener('click', () => openFlashcards());
     $('#btnProgress').addEventListener('click', () => openProgress());
   }
@@ -761,6 +767,117 @@
   }
 
   // =============================================
+  // FULL READ VIEW (Book Mode)
+  // =============================================
+  function openReadView(sectionId) {
+    const container = $('#readContainer');
+    if (!container) return;
+    showView('read');
+    renderReadView(sectionId || null);
+  }
+
+  function renderReadView(scrollToSection) {
+    const container = $('#readContainer');
+    if (!container) return;
+
+    let tocHtml = '<div class="read-toc">';
+    tocHtml += '<div class="read-toc-header">📑 فهرست مطالب<br><small>Table of Contents</small></div>';
+    tocHtml += '<div class="read-toc-back"><button onclick="showView(\'home\')">← بازگشت</button></div>';
+
+    let contentHtml = '<div class="read-content">';
+    contentHtml += '<div class="read-intro">';
+    contentHtml += '<h1 class="read-main-title">🇬🇧 کد بزرگراه بریتانیا</h1>';
+    contentHtml += '<p class="read-subtitle">The Highway Code — نسخه کامل فارسی</p>';
+    contentHtml += '<p class="read-intro-text">این نسخه شامل تمام ۱۵ بخش از قوانین راهنمایی و رانندگی بریتانیا به زبان فارسی با ترجمه انگلیسی است.</p>';
+    contentHtml += '<p class="read-intro-text-en">This edition covers all 15 sections of the UK Highway Code in Farsi with English translations.</p>';
+    contentHtml += '<div class="read-stats-row">';
+    const totalRules = Object.values(RULES).reduce((s, r) => s + (r.rules || []).length, 0);
+    const totalSections = Object.keys(RULES).length;
+    contentHtml += `<div class="read-stat"><span class="read-stat-num">${totalSections}</span><span class="read-stat-label">بخش</span></div>`;
+    contentHtml += `<div class="read-stat"><span class="read-stat-num">${totalRules}</span><span class="read-stat-label">قانون</span></div>`;
+    contentHtml += `<div class="read-stat"><span class="read-stat-num">47</span><span class="read-stat-label">آزمون</span></div>`;
+    contentHtml += '</div></div>';
+
+    Object.entries(RULES).forEach(([key, section], idx) => {
+      const title = state.lang === 'en' ? (section.titleEn || section.title) : section.title;
+      const rules = section.rules || [];
+
+      // TOC entry
+      tocHtml += `<a class="read-toc-item ${scrollToSection === key ? 'active' : ''}" href="#read-${key}" onclick="document.getElementById('read-${key}').scrollIntoView({behavior:'smooth'}); return false;">`;
+      tocHtml += `<span class="read-toc-num">${idx + 1}</span>`;
+      tocHtml += `<span class="read-toc-text">${title}</span>`;
+      tocHtml += `<span class="read-toc-count">${rules.length}</span>`;
+      tocHtml += '</a>';
+
+      // Content section
+      contentHtml += `<section class="read-section" id="read-${key}">`;
+      contentHtml += `<div class="read-section-header">`;
+      contentHtml += `<span class="read-section-num">${idx + 1}</span>`;
+      contentHtml += `<div>`;
+      contentHtml += `<h2 class="read-section-title">${section.title}</h2>`;
+      contentHtml += `<p class="read-section-title-en">${section.titleEn}</p>`;
+      contentHtml += `</div>`;
+      contentHtml += `<button class="read-speak-section" data-section="${key}" title="Listen to section">🔊</button>`;
+      contentHtml += `</div>`;
+
+      rules.forEach((rule, ri) => {
+        contentHtml += `<div class="read-rule" id="rule-${key}-${ri}">`;
+        contentHtml += `<div class="read-rule-num">قانون ${rule.num}</div>`;
+        contentHtml += `<div class="read-rule-fa">${rule.fa}</div>`;
+        contentHtml += `<div class="read-rule-en">${rule.en}</div>`;
+
+        if (rule.warningFa) {
+          contentHtml += `<div class="read-warning">⚠️ ${rule.warningFa}</div>`;
+          contentHtml += `<div class="read-warning-en">⚠️ ${rule.warningEn || ''}</div>`;
+        }
+        if (rule.tipFa) {
+          contentHtml += `<div class="read-tip">💡 ${rule.tipFa}</div>`;
+          contentHtml += `<div class="read-tip-en">💡 ${rule.tipEn || ''}</div>`;
+        }
+        contentHtml += '</div>';
+      });
+
+      // Quiz for this section
+      if (section.quiz && section.quiz.length > 0) {
+        contentHtml += `<div class="read-quiz-section">`;
+        contentHtml += `<h3 class="read-quiz-title">📝 آزمون بخش ${idx + 1}</h3>`;
+        contentHtml += `<button class="read-quiz-btn" onclick="openQuizView('${key}')">شروع آزمون / Take Quiz</button>`;
+        contentHtml += `</div>`;
+      }
+
+      contentHtml += '</section>';
+    });
+
+    tocHtml += '</div>';
+    contentHtml += '<div class="read-footer">';
+    contentHtml += '<p>🇬🇧 کد بزرگراه بریتانیا — نسخه آموزشی فارسی</p>';
+    contentHtml += '<p class="read-footer-en">UK Highway Code — Educational Farsi Edition</p>';
+    contentHtml += '<p class="read-footer-disclaimer">⚠️ این یک نسخه آموزشی است. برای نسخه رسمی به gov.uk مراجعه کنید.</p>';
+    contentHtml += '</div></div>';
+
+    container.innerHTML = tocHtml + contentHtml;
+
+    // Bind section speaker buttons
+    $$('.read-speak-section').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sectionKey = btn.dataset.section;
+        const section = RULES[sectionKey];
+        if (!section || !section.rules) return;
+        const text = section.rules.map(r => r.fa).join('. ');
+        speakText(text);
+      });
+    });
+
+    // Scroll to section if requested
+    if (scrollToSection) {
+      setTimeout(() => {
+        const el = document.getElementById(`read-${scrollToSection}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }
+
+  // =============================================
   // FLASHCARD MODE
   // =============================================
   function openFlashcards(filter) {
@@ -1138,6 +1255,8 @@
         if (target === 'home') {
           showView('home');
           renderCategories();
+        } else if (target === 'read') {
+          openReadView();
         } else if (target === 'flashcards') {
           openFlashcards();
         } else if (target === 'progress') {
