@@ -1,0 +1,1172 @@
+// ===== HIGHWAY CODE FARSI APP — FULL FEATURE =====
+// Flashcards, Progress Tracking, Audio Mode, Sign Images
+
+(function () {
+  'use strict';
+
+  // =============================================
+  // STATE
+  // =============================================
+  const state = {
+    currentView: 'home',
+    currentCategory: null,
+    quizIndex: 0,
+    quizAnswered: false,
+    quizScore: 0,
+    completedSections: JSON.parse(localStorage.getItem('hc_completed') || '[]'),
+    lastQuizScore: localStorage.getItem('hc_last_score') || '—',
+    // Flashcard state
+    flashcard: {
+      cards: [],
+      index: 0,
+      flipped: false,
+      correct: 0,
+      incorrect: 0,
+      reviewed: 0,
+      done: false,
+      filter: 'all',
+    },
+    // Audio
+    audioEnabled: JSON.parse(localStorage.getItem('hc_audio') || 'true'),
+    speakingRuleId: null,
+    listenAllPlaying: false,
+    listenAllAbort: false,
+    listenAllTimeout: null,
+  };
+
+  // Progress data from localStorage
+  function loadProgressData() {
+    try {
+      return JSON.parse(localStorage.getItem('highway-code-progress') || '{}');
+    } catch (e) {
+      return {};
+    }
+  }
+  function saveProgressData(data) {
+    localStorage.setItem('highway-code-progress', JSON.stringify(data));
+  }
+
+  // =============================================
+  // DOM HELPERS
+  // =============================================
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => document.querySelectorAll(sel);
+
+  // =============================================
+  // AUDIO ENGINE (Web Speech API)
+  // =============================================
+  let farsiVoice = null;
+
+  function initAudioVoices() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = speechSynthesis.getVoices();
+    // Prefer female Farsi voice
+    farsiVoice = voices.find(v => v.lang === 'fa-IR' && v.name.toLowerCase().includes('female'))
+      || voices.find(v => v.lang === 'fa-IR')
+      || voices.find(v => v.lang === 'fa')
+      || voices.find(v => v.lang && v.lang.startsWith('fa'));
+  }
+
+  function speakFarsi(text, ruleId) {
+    if (!state.audioEnabled || !('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = farsiVoice ? farsiVoice.lang : 'fa-IR';
+    if (farsiVoice) utterance.voice = farsiVoice;
+    utterance.rate = 0.9;
+    utterance.pitch = 1.1;
+
+    state.speakingRuleId = ruleId;
+    // Show speaking indicator
+    const indicator = document.querySelector(`[data-speaking-indicator="${ruleId}"]`);
+    if (indicator) indicator.classList.add('speaking-active');
+
+    utterance.onend = () => {
+      state.speakingRuleId = null;
+      if (indicator) indicator.classList.remove('speaking-active');
+    };
+    utterance.onerror = () => {
+      state.speakingRuleId = null;
+      if (indicator) indicator.classList.remove('speaking-active');
+    };
+
+    speechSynthesis.speak(utterance);
+  }
+
+  function stopSpeaking() {
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    state.speakingRuleId = null;
+    $$('.speaking-active').forEach(el => el.classList.remove('speaking-active'));
+  }
+
+  function speakFarsiSequential(texts, ruleIds, onDone) {
+    if (!texts.length) { if (onDone) onDone(); return; }
+    state.listenAllPlaying = true;
+    state.listenAllAbort = false;
+
+    let idx = 0;
+    function next() {
+      if (state.listenAllAbort || idx >= texts.length) {
+        state.listenAllPlaying = false;
+        if (onDone) onDone();
+        return;
+      }
+      const text = texts[idx];
+      const ruleId = ruleIds[idx];
+
+      // Highlight current
+      $$('.listen-all-highlight').forEach(el => el.classList.remove('listen-all-highlight'));
+      const card = document.querySelector(`[data-rule-id="${ruleId}"]`);
+      if (card) card.classList.add('listen-all-highlight');
+
+      if (!state.audioEnabled || !('speechSynthesis' in window)) {
+        idx++;
+        state.listenAllTimeout = setTimeout(next, 2000);
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = farsiVoice ? farsiVoice.lang : 'fa-IR';
+      if (farsiVoice) utterance.voice = farsiVoice;
+      utterance.rate = 0.9;
+      utterance.pitch = 1.1;
+
+      const indicator = document.querySelector(`[data-speaking-indicator="${ruleId}"]`);
+      if (indicator) indicator.classList.add('speaking-active');
+
+      utterance.onend = () => {
+        if (indicator) indicator.classList.remove('speaking-active');
+        idx++;
+        state.listenAllTimeout = setTimeout(next, 500);
+      };
+      utterance.onerror = () => {
+        if (indicator) indicator.classList.remove('speaking-active');
+        idx++;
+        state.listenAllTimeout = setTimeout(next, 500);
+      };
+
+      speechSynthesis.speak(utterance);
+    }
+    next();
+  }
+
+  function stopListenAll() {
+    state.listenAllAbort = true;
+    state.listenAllPlaying = false;
+    stopSpeaking();
+    if (state.listenAllTimeout) clearTimeout(state.listenAllTimeout);
+    $$('.listen-all-highlight').forEach(el => el.classList.remove('listen-all-highlight'));
+    $$('.speaking-active').forEach(el => el.classList.remove('speaking-active'));
+  }
+
+  // =============================================
+  // ROAD SIGN IMAGE MATCHING
+  // =============================================
+  function findSignForRule(rule) {
+    if (!window.ROAD_SIGN_VISUALS || !ROAD_SIGN_VISUALS.length) return null;
+    const text = (rule.fa + ' ' + rule.en).toLowerCase();
+    let bestMatch = null;
+    let bestScore = 0;
+
+    for (const sign of ROAD_SIGN_VISUALS) {
+      let score = 0;
+      for (const kw of (sign.keywords || [])) {
+        if (text.includes(kw.toLowerCase())) score++;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = sign;
+      }
+    }
+    return bestScore >= 1 ? bestMatch : null;
+  }
+
+  function signThumbnail(sign, size) {
+    size = size || 60;
+    if (!sign) return '';
+    return `<div class="sign-thumbnail" style="width:${size}px;height:${size}px;flex-shrink:0" title="${sign.nameFa} / ${sign.nameEn}">${sign.svg}</div>`;
+  }
+
+  // =============================================
+  // VIEW MANAGEMENT
+  // =============================================
+  function showView(name) {
+    $$('.view').forEach(v => v.classList.remove('active'));
+    const target = $(`#${name}View`);
+    if (target) target.classList.add('active');
+    state.currentView = name;
+    window.scrollTo(0, 0);
+    updateBottomNav(name);
+  }
+
+  // =============================================
+  // BOTTOM NAV
+  // =============================================
+  function updateBottomNav(active) {
+    const map = { home: 'navHome', flashcards: 'navFlashcards', progress: 'navProgress' };
+    const activeId = map[active] || 'navHome';
+    $$('.bottom-nav-item').forEach(btn => {
+      btn.classList.toggle('active', btn.id === activeId);
+    });
+  }
+
+  // =============================================
+  // INIT
+  // =============================================
+  function init() {
+    renderCategories();
+    updateProgress();
+    updateStats();
+    renderQuickActions();
+    bindEvents();
+    initAudioVoices();
+    // Voices may load async
+    if ('speechSynthesis' in window) {
+      speechSynthesis.onvoiceschanged = initAudioVoices;
+    }
+  }
+
+  // =============================================
+  // QUICK ACTIONS (Flashcards + Progress buttons)
+  // =============================================
+  function renderQuickActions() {
+    const container = $('#quickActions');
+    if (!container) return;
+    container.innerHTML = `
+      <div class="quick-actions">
+        <button class="quick-action-btn" id="btnFlashcards">
+          <span class="quick-action-icon">🔄</span>
+          <span class="quick-action-label">فلش‌کارت</span>
+          <span class="quick-action-label-en">Flashcards</span>
+        </button>
+        <button class="quick-action-btn" id="btnProgress">
+          <span class="quick-action-icon">📊</span>
+          <span class="quick-action-label">پیشرفت</span>
+          <span class="quick-action-label-en">Progress</span>
+        </button>
+      </div>
+    `;
+    $('#btnFlashcards').addEventListener('click', () => openFlashcards());
+    $('#btnProgress').addEventListener('click', () => openProgress());
+  }
+
+  // =============================================
+  // RENDER CATEGORIES
+  // =============================================
+  function renderCategories(filter) {
+    filter = filter || '';
+    const grid = $('#categoryGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    const filtered = CATEGORIES.filter(c => {
+      if (!filter) return true;
+      return c.title.includes(filter) || c.titleEn.toLowerCase().includes(filter.toLowerCase());
+    });
+
+    filtered.forEach(cat => {
+      const completed = state.completedSections.includes(cat.id);
+      const hasContent = !!RULES[cat.id];
+      const card = document.createElement('div');
+      card.className = 'cat-card' + (completed ? ' completed' : '');
+      card.innerHTML = `
+        <div class="cat-icon" style="background:${cat.color}15">${cat.icon}</div>
+        <div class="cat-info">
+          <div class="cat-title">${cat.title}</div>
+          <div class="cat-title-en">${cat.titleEn}</div>
+          <div class="cat-meta">${cat.count} rule${hasContent ? ' · ✅ Available' : ' · 🚧 Coming soon'}</div>
+        </div>
+      `;
+      if (hasContent) {
+        card.addEventListener('click', () => openSection(cat.id));
+      }
+      grid.appendChild(card);
+    });
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<p style="text-align:center;color:#888;padding:20px">نتیجه‌ای یافت نشد / No results found</p>';
+    }
+  }
+
+  // =============================================
+  // OPEN SECTION (Category view with audio + sign images)
+  // =============================================
+  function openSection(catId) {
+    stopListenAll();
+    const rules = RULES[catId];
+    if (!rules) return;
+    state.currentCategory = catId;
+
+    let html = `
+      <h1 class="section-title">${rules.title}</h1>
+      <p class="section-title-en">${rules.titleEn}</p>
+    `;
+
+    // Listen All button
+    html += `
+      <div class="listen-all-bar">
+        <button class="listen-all-btn" id="listenAllBtn">
+          <span class="listen-all-icon">🔊</span>
+          <span>شنیدن همه / Listen All</span>
+        </button>
+        <button class="audio-toggle-btn ${state.audioEnabled ? 'on' : ''}" id="audioToggleBtn" title="Audio on/off">
+          ${state.audioEnabled ? '🔊' : '🔇'}
+        </button>
+      </div>
+    `;
+
+    const allFaTexts = [];
+    const allRuleIds = [];
+
+    rules.rules.forEach(rule => {
+      const ruleId = catId + '-' + rule.num;
+      const sign = findSignForRule(rule);
+      allFaTexts.push(rule.fa);
+      allRuleIds.push(ruleId);
+
+      html += `<div class="rule-card" data-rule-id="${ruleId}">`;
+      html += `<div class="rule-header">`;
+
+      // Sign thumbnail + rule number
+      if (sign) {
+        html += `<div class="rule-header-row">`;
+        html += `<div class="rule-num">Rule ${rule.num}</div>`;
+        html += signThumbnail(sign, 50);
+        html += `</div>`;
+      } else {
+        html += `<div class="rule-num">Rule ${rule.num}</div>`;
+      }
+      html += `</div>`;
+
+      html += `<div class="rule-text-row">`;
+      html += `<div class="rule-text">${rule.fa.replace(/\n/g, '<br>')}</div>`;
+      // Audio button
+      html += `<button class="speak-btn" data-speak-rule="${ruleId}" data-speak-text="${escapeAttr(rule.fa)}" title="Listen">
+        <span class="speak-icon" data-speaking-indicator="${ruleId}">🔊</span>
+      </button>`;
+      html += `</div>`;
+
+      html += `<div class="rule-text-en">${rule.en.replace(/\n/g, '<br>')}</div>`;
+
+      if (rule.tipFa) {
+        html += `<div class="rule-tip"><div><strong>${rule.tipFa}</strong><br><span style="direction:ltr;display:block;margin-top:4px;color:#166534;font-size:12px">${rule.tipEn}</span></div></div>`;
+      }
+      if (rule.warning) {
+        html += `<div class="rule-warning"><div><strong>${rule.warning.fa}</strong><br><span style="direction:ltr;display:block;margin-top:4px;color:#92400e;font-size:12px">${rule.warning.en}</span></div></div>`;
+      }
+      if (rule.warningFa) {
+        html += `<div class="rule-warning"><div><strong>${rule.warningFa}</strong><br><span style="direction:ltr;display:block;margin-top:4px;color:#92400e;font-size:12px">${rule.warningEn}</span></div></div>`;
+      }
+
+      html += `</div>`;
+    });
+
+    const completed = state.completedSections.includes(catId);
+    html += `
+      <button class="mark-complete ${completed ? 'done' : ''}" id="markCompleteBtn">
+        ${completed ? '✅ مطالعه شد / Studied' : '✅ نشانه‌گذاری به عنوان مطالعه شده / Mark as studied'}
+      </button>
+    `;
+
+    if (rules.quiz) {
+      html += `<button class="start-quiz-btn" id="startQuizBtn">📝 آزمون کوتاه / Take Quiz</button>`;
+    }
+
+    const sectionContent = $('#sectionContent');
+    if (sectionContent) sectionContent.innerHTML = html;
+    showView('section');
+
+    // Bind mark complete
+    const mcBtn = $('#markCompleteBtn');
+    if (mcBtn) mcBtn.addEventListener('click', () => toggleComplete(catId));
+
+    // Bind quiz
+    const quizBtn = $('#startQuizBtn');
+    if (quizBtn) quizBtn.addEventListener('click', () => startQuiz(catId));
+
+    // Bind speak buttons
+    $$('.speak-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const ruleId = btn.dataset.speakRule;
+        const text = btn.dataset.speakText;
+        if (state.speakingRuleId === ruleId) {
+          stopSpeaking();
+        } else {
+          speakFarsi(text, ruleId);
+        }
+      });
+    });
+
+    // Bind listen all
+    const laBtn = $('#listenAllBtn');
+    if (laBtn) {
+      laBtn.addEventListener('click', () => {
+        if (state.listenAllPlaying) {
+          stopListenAll();
+          laBtn.classList.remove('playing');
+        } else {
+          laBtn.classList.add('playing');
+          speakFarsiSequential(allFaTexts, allRuleIds, () => {
+            laBtn.classList.remove('playing');
+          });
+        }
+      });
+    }
+
+    // Bind audio toggle
+    const atBtn = $('#audioToggleBtn');
+    if (atBtn) {
+      atBtn.addEventListener('click', () => {
+        state.audioEnabled = !state.audioEnabled;
+        localStorage.setItem('hc_audio', JSON.stringify(state.audioEnabled));
+        atBtn.textContent = state.audioEnabled ? '🔊' : '🔇';
+        atBtn.classList.toggle('on', state.audioEnabled);
+        if (!state.audioEnabled) stopListenAll();
+      });
+    }
+  }
+
+  // =============================================
+  // TOGGLE COMPLETE
+  // =============================================
+  function toggleComplete(catId) {
+    const idx = state.completedSections.indexOf(catId);
+    if (idx === -1) {
+      state.completedSections.push(catId);
+    } else {
+      state.completedSections.splice(idx, 1);
+    }
+    localStorage.setItem('hc_completed', JSON.stringify(state.completedSections));
+
+    // Update progress tracking
+    recordStudyDay();
+    updateProgress();
+    updateStats();
+    openSection(catId); // re-render
+  }
+
+  function recordStudyDay() {
+    const data = loadProgressData();
+    const today = new Date().toISOString().split('T')[0];
+    if (!data.studyDays) data.studyDays = [];
+    if (!data.studyDays.includes(today)) {
+      data.studyDays.push(today);
+      saveProgressData(data);
+    }
+  }
+
+  // =============================================
+  // QUIZ (existing + progress tracking)
+  // =============================================
+  function startQuiz(catId) {
+    state.currentCategory = catId;
+    state.quizIndex = 0;
+    state.quizScore = 0;
+    state.quizAnswered = false;
+    showView('quiz');
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const rules = RULES[state.currentCategory];
+    const quiz = rules.quiz;
+    if (!quiz || state.quizIndex >= quiz.length) {
+      renderQuizResult();
+      return;
+    }
+    const q = quiz[state.quizIndex];
+
+    const progress = ((state.quizIndex) / quiz.length * 100).toFixed(0);
+    let html = `
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" style="width:${progress}%"></div></div>
+        <span class="quiz-progress-text">${state.quizIndex + 1} / ${quiz.length}</span>
+      </div>
+      <div class="quiz-question">
+        <div class="quiz-q-text">${q.q}</div>
+        <div class="quiz-q-en">${q.qEn}</div>
+        <div class="quiz-options">
+    `;
+
+    q.options.forEach(opt => {
+      html += `
+        <div class="quiz-opt" data-letter="${opt.letter}">
+          <span class="quiz-opt-letter">${opt.letter}</span>
+          ${opt.fa}<br><span style="direction:ltr;font-size:12px;color:#888">${opt.en}</span>
+        </div>
+      `;
+    });
+
+    html += `</div></div>`;
+    html += `<div class="quiz-explanation" id="quizExplanation"><strong>توضیح:</strong> ${q.explanation}</div>`;
+    html += `<button class="quiz-next" id="quizNextBtn">بعدی / Next →</button>`;
+
+    const qc = $('#quizContainer');
+    if (qc) qc.innerHTML = html;
+    state.quizAnswered = false;
+
+    // Bind options
+    $$('.quiz-opt').forEach(opt => {
+      opt.addEventListener('click', () => handleAnswer(opt.dataset.letter, q.answer));
+    });
+
+    // Bind next
+    const nextBtn = $('#quizNextBtn');
+    if (nextBtn) {
+      nextBtn.addEventListener('click', () => {
+        state.quizIndex++;
+        renderQuestion();
+      });
+    }
+  }
+
+  function handleAnswer(letter, correct) {
+    if (state.quizAnswered) return;
+    state.quizAnswered = true;
+
+    if (letter === correct) {
+      state.quizScore++;
+      const el = document.querySelector(`.quiz-opt[data-letter="${letter}"]`);
+      if (el) el.classList.add('correct');
+    } else {
+      const el = document.querySelector(`.quiz-opt[data-letter="${letter}"]`);
+      if (el) el.classList.add('wrong');
+      const cel = document.querySelector(`.quiz-opt[data-letter="${correct}"]`);
+      if (cel) cel.classList.add('correct');
+    }
+
+    const exp = $('#quizExplanation');
+    if (exp) exp.classList.add('visible');
+    const next = $('#quizNextBtn');
+    if (next) next.classList.add('visible');
+  }
+
+  function renderQuizResult() {
+    const quiz = RULES[state.currentCategory].quiz;
+    const pct = Math.round((state.quizScore / quiz.length) * 100);
+    const passed = pct >= 75;
+
+    state.lastQuizScore = pct + '%';
+    localStorage.setItem('hc_last_score', state.lastQuizScore);
+
+    // Save to progress tracking
+    saveQuizScore(state.currentCategory, pct);
+
+    updateStats();
+
+    const qc = $('#quizContainer');
+    if (!qc) return;
+    qc.innerHTML = `
+      <div class="quiz-result">
+        <div class="quiz-result-icon">${passed ? '🎉' : '📚'}</div>
+        <div class="quiz-result-score">${state.quizScore}/${quiz.length}</div>
+        <div class="quiz-result-label">${pct}%</div>
+        <div class="quiz-result-message">
+          ${passed
+            ? 'آفرین! نتیجه عالی! 🎉<br><span style="font-size:14px;color:#888;direction:ltr">Great result! You passed!</span>'
+            : 'نیاز به مطالعه بیشتر دارید 📚<br><span style="font-size:14px;color:#888;direction:ltr">Keep studying and try again!</span>'
+          }
+        </div>
+        <button class="start-quiz-btn" style="margin-top:24px;max-width:200px;margin-left:auto;margin-right:auto" id="quizResultBackBtn">
+          بازگشت / Back
+        </button>
+      </div>
+    `;
+    const backBtn = $('#quizResultBackBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        showView('home');
+        renderCategories();
+      });
+    }
+  }
+
+  // =============================================
+  // PROGRESS TRACKING — QUIZ SCORE HISTORY
+  // =============================================
+  function saveQuizScore(catId, pct) {
+    const data = loadProgressData();
+    if (!data.quizScores) data.quizScores = {};
+    if (!data.quizScores[catId]) data.quizScores[catId] = [];
+    data.quizScores[catId].push({ score: pct, date: new Date().toISOString() });
+    // Keep last 5
+    if (data.quizScores[catId].length > 5) {
+      data.quizScores[catId] = data.quizScores[catId].slice(-5);
+    }
+    saveProgressData(data);
+  }
+
+  function getStreak() {
+    const data = loadProgressData();
+    const days = (data.studyDays || []).sort();
+    if (!days.length) return 0;
+
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 365; i++) {
+      const check = new Date(today);
+      check.setDate(check.getDate() - i);
+      const dateStr = check.toISOString().split('T')[0];
+      if (days.includes(dateStr)) {
+        streak++;
+      } else {
+        // Allow today to not be recorded yet (if it's still early)
+        if (i === 0) continue;
+        break;
+      }
+    }
+    return streak;
+  }
+
+  // =============================================
+  // PROGRESS VIEW
+  // =============================================
+  function openProgress() {
+    const container = $('#progressContainer');
+    if (!container) return;
+    showView('progress');
+
+    const data = loadProgressData();
+    const totalSections = Object.keys(RULES).length;
+    const completedCount = state.completedSections.filter(s => RULES[s]).length;
+    const overallPct = totalSections ? Math.round((completedCount / totalSections) * 100) : 0;
+
+    // Quiz stats
+    const quizScores = data.quizScores || {};
+    const allQuizScores = [];
+    Object.values(quizScores).forEach(arr => arr.forEach(e => allQuizScores.push(e.score)));
+    const totalQuizAttempts = allQuizScores.length;
+    const avgQuizScore = totalQuizAttempts ? Math.round(allQuizScores.reduce((a, b) => a + b, 0) / totalQuizAttempts) : 0;
+
+    // Streak
+    const streak = getStreak();
+    const totalStudyDays = (data.studyDays || []).length;
+    const totalRulesStudied = completedCount; // sections = rules groups
+
+    let html = `
+      <div class="progress-view-header">
+        <h1 class="section-title">📊 پیشرفت شما</h1>
+        <p class="section-title-en">Your Progress</p>
+      </div>
+
+      <!-- Overall -->
+      <div class="progress-card progress-card-overall">
+        <div class="progress-card-header">
+          <span class="progress-card-icon">🎯</span>
+          <span class="progress-card-title">Overall Progress</span>
+        </div>
+        <div class="progress-overall-row">
+          <div class="progress-circle">
+            <svg viewBox="0 0 100 100" class="progress-ring">
+              <circle cx="50" cy="50" r="42" class="progress-ring-bg"/>
+              <circle cx="50" cy="50" r="42" class="progress-ring-fill" style="stroke-dashoffset:${259 - (259 * overallPct / 100)}"/>
+            </svg>
+            <div class="progress-circle-text">${overallPct}%</div>
+          </div>
+          <div class="progress-overall-stats">
+            <div class="progress-mini-stat"><span class="progress-mini-num">${completedCount}</span><span class="progress-mini-label">Sections</span></div>
+            <div class="progress-mini-stat"><span class="progress-mini-num">${totalSections}</span><span class="progress-mini-label">Total</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="progress-stats-grid">
+        <div class="progress-stat-card">
+          <div class="progress-stat-icon">🔥</div>
+          <div class="progress-stat-value">${streak}</div>
+          <div class="progress-stat-label">روز متوالی<br><span style="direction:ltr">Day Streak</span></div>
+        </div>
+        <div class="progress-stat-card">
+          <div class="progress-stat-icon">📝</div>
+          <div class="progress-stat-value">${totalQuizAttempts}</div>
+          <div class="progress-stat-label">تلاش آزمون<br><span style="direction:ltr">Quiz Attempts</span></div>
+        </div>
+        <div class="progress-stat-card">
+          <div class="progress-stat-icon">📊</div>
+          <div class="progress-stat-value">${avgQuizScore}%</div>
+          <div class="progress-stat-label">میانگین امتیاز<br><span style="direction:ltr">Avg Score</span></div>
+        </div>
+        <div class="progress-stat-card">
+          <div class="progress-stat-icon">📅</div>
+          <div class="progress-stat-value">${totalStudyDays}</div>
+          <div class="progress-stat-label">روز مطالعه<br><span style="direction:ltr">Days Studied</span></div>
+        </div>
+      </div>
+
+      <!-- Per-Section Breakdown -->
+      <div class="progress-section-title">Per-Section Progress</div>
+      <div class="progress-section-list">
+    `;
+
+    CATEGORIES.forEach(cat => {
+      const hasContent = !!RULES[cat.id];
+      if (!hasContent) return;
+      const isComplete = state.completedSections.includes(cat.id);
+      const sectionQuizScores = quizScores[cat.id] || [];
+      const lastScore = sectionQuizScores.length ? sectionQuizScores[sectionQuizScores.length - 1].score : null;
+
+      // Score history bar (last 5)
+      let scoreBarHtml = '';
+      if (sectionQuizScores.length) {
+        scoreBarHtml = '<div class="progress-score-bar">';
+        sectionQuizScores.forEach((s, i) => {
+          const color = s.score >= 75 ? '#22c55e' : s.score >= 50 ? '#f59e0b' : '#ef4444';
+          const height = Math.max(8, s.score * 0.3);
+          scoreBarHtml += `<div class="progress-score-col" style="height:${height}px;background:${color}" title="${s.score}%"></div>`;
+        });
+        scoreBarHtml += '</div>';
+      }
+
+      html += `
+        <div class="progress-section-item ${isComplete ? 'done' : ''}">
+          <div class="progress-section-left">
+            <span class="progress-section-icon" style="background:${cat.color}15">${cat.icon}</span>
+            <div class="progress-section-info">
+              <div class="progress-section-name">${cat.title}</div>
+              <div class="progress-section-name-en">${cat.titleEn}</div>
+            </div>
+          </div>
+          <div class="progress-section-right">
+            <div class="progress-section-status">
+              ${isComplete
+                ? '<span class="progress-badge done">✅ مطالعه شد</span>'
+                : '<span class="progress-badge pending">⬜ در انتظار</span>'
+              }
+              ${lastScore !== null ? `<span class="progress-score-badge" style="color:${lastScore >= 75 ? '#22c55e' : '#f59e0b'}">آخرین: ${lastScore}%</span>` : ''}
+            </div>
+            ${scoreBarHtml}
+          </div>
+        </div>
+      `;
+    });
+
+    html += `
+      </div>
+      <button class="start-quiz-btn" style="margin-top:20px" id="progressBackBtn">بازگشت / Back to Home</button>
+    `;
+
+    container.innerHTML = html;
+
+    const backBtn = $('#progressBackBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        showView('home');
+        renderCategories();
+      });
+    }
+  }
+
+  // =============================================
+  // FLASHCARD MODE
+  // =============================================
+  function openFlashcards(filter) {
+    const container = $('#flashcardContainer');
+    if (!container) return;
+    showView('flashcards');
+
+    state.flashcard.filter = filter || 'all';
+    state.flashcard.done = false;
+
+    renderFlashcardView();
+  }
+
+  function renderFlashcardView() {
+    const container = $('#flashcardContainer');
+    if (!container) return;
+
+    if (state.flashcard.done) {
+      renderFlashcardSummary();
+      return;
+    }
+
+    // Load cards
+    let cards = (window.ROAD_SIGN_VISUALS || []).slice();
+    const filter = state.flashcard.filter;
+
+    if (filter && filter !== 'all') {
+      cards = cards.filter(c => c.category === filter);
+    }
+
+    if (!cards.length) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:60px 20px;color:#888">
+          <div style="font-size:48px;margin-bottom:16px">🚫</div>
+          <p>نشانه‌ای برای این دسته‌بندی یافت نشد</p>
+          <p style="direction:ltr;font-size:13px">No signs found for this category</p>
+        </div>
+      `;
+      return;
+    }
+
+    if (!state.flashcard.cards.length || state.flashcard.filter !== filter) {
+      state.flashcard.cards = cards;
+      state.flashcard.index = 0;
+      state.flashcard.correct = 0;
+      state.flashcard.incorrect = 0;
+      state.flashcard.reviewed = 0;
+      state.flashcard.flipped = false;
+    }
+
+    const fc = state.flashcard;
+    const card = fc.cards[fc.index];
+    const total = fc.cards.length;
+    const progressPct = total ? Math.round((fc.reviewed / total) * 100) : 0;
+
+    const categories = ['all', 'regulatory', 'warning', 'pedestrian', 'motorway'];
+    const catLabels = { all: 'همه / All', regulatory: 'تنظیمی / Regulatory', warning: 'هشدار / Warning', pedestrian: 'پیاده / Pedestrian', motorway: 'بزرگراه / Motorway' };
+
+    let filterHtml = '<div class="flashcard-filters">';
+    categories.forEach(cat => {
+      filterHtml += `<button class="flashcard-filter-btn ${filter === cat ? 'active' : ''}" data-filter="${cat}">${catLabels[cat]}</button>`;
+    });
+    filterHtml += '</div>';
+
+    container.innerHTML = `
+      <h1 class="section-title">🔄 فلش‌کارت</h1>
+      <p class="section-title-en">Flashcard Mode</p>
+
+      ${filterHtml}
+
+      <!-- Score display -->
+      <div class="flashcard-score-bar">
+        <span class="flashcard-score-correct">✅ ${fc.correct}</span>
+        <span class="flashcard-score-progress">${fc.index + 1} / ${total}</span>
+        <span class="flashcard-score-incorrect">❌ ${fc.incorrect}</span>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="flashcard-progress-bar">
+        <div class="flashcard-progress-fill" style="width:${progressPct}%"></div>
+      </div>
+
+      <!-- Flashcard -->
+      <div class="flashcard-wrapper" id="flashcardWrapper">
+        <div class="flashcard-card ${fc.flipped ? 'flipped' : ''}" id="flashcardCard">
+          <div class="flashcard-face flashcard-front">
+            <div class="flashcard-front-inner">
+              ${card.svg}
+            </div>
+            <div class="flashcard-hint">برای دیدن جواب ضربه بزنید<br><span style="direction:ltr;font-size:12px;color:#aaa">Tap to reveal</span></div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <div class="flashcard-back-inner">
+              <div class="flashcard-name">${card.nameFa}</div>
+              <div class="flashcard-name-en">${card.nameEn}</div>
+              <div class="flashcard-divider"></div>
+              <div class="flashcard-desc">${card.descriptionFa}</div>
+              <div class="flashcard-desc-en">${card.descriptionEn}</div>
+              <div class="flashcard-cat-badge">${card.category}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flashcard-actions">
+        <button class="flashcard-btn incorrect" id="fcIncorrect" title="Incorrect / اشتباه">
+          ← ❌
+        </button>
+        ${!fc.flipped ? `
+          <button class="flashcard-btn flip" id="fcFlip" title="Flip / برگردان">
+            🔄
+          </button>
+        ` : ''}
+        <button class="flashcard-btn correct" id="fcCorrect" title="Correct / درست">
+          ✅ →
+        </button>
+      </div>
+
+      <!-- Extra actions -->
+      <div class="flashcard-extra-actions">
+        <button class="flashcard-extra-btn" id="fcShuffle">🔀 ترتیب تصادفی / Shuffle</button>
+        <button class="flashcard-extra-btn" id="fcRestart">🔄 شروع مجدد / Restart</button>
+      </div>
+    `;
+
+    // Bind card flip (tap)
+    const wrapper = $('#flashcardWrapper');
+    if (wrapper) {
+      wrapper.addEventListener('click', (e) => {
+        if (e.target.closest('.flashcard-btn') || e.target.closest('.flashcard-extra-btn') || e.target.closest('.flashcard-filter-btn')) return;
+        fc.flipped = !fc.flipped;
+        renderFlashcardView();
+      });
+    }
+
+    // Bind flip button
+    const flipBtn = $('#fcFlip');
+    if (flipBtn) {
+      flipBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fc.flipped = !fc.flipped;
+        renderFlashcardView();
+      });
+    }
+
+    // Bind correct
+    const correctBtn = $('#fcCorrect');
+    if (correctBtn) {
+      correctBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fc.correct++;
+        fc.reviewed++;
+        advanceFlashcard();
+      });
+    }
+
+    // Bind incorrect
+    const incorrectBtn = $('#fcIncorrect');
+    if (incorrectBtn) {
+      incorrectBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fc.incorrect++;
+        fc.reviewed++;
+        advanceFlashcard();
+      });
+    }
+
+    // Bind shuffle
+    const shuffleBtn = $('#fcShuffle');
+    if (shuffleBtn) {
+      shuffleBtn.addEventListener('click', () => {
+        fc.cards = shuffleArray(fc.cards.slice());
+        fc.index = 0;
+        fc.reviewed = 0;
+        fc.correct = 0;
+        fc.incorrect = 0;
+        fc.flipped = false;
+        renderFlashcardView();
+      });
+    }
+
+    // Bind restart
+    const restartBtn = $('#fcRestart');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', () => {
+        fc.index = 0;
+        fc.reviewed = 0;
+        fc.correct = 0;
+        fc.incorrect = 0;
+        fc.flipped = false;
+        fc.done = false;
+        renderFlashcardView();
+      });
+    }
+
+    // Bind filters
+    $$('.flashcard-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        openFlashcards(btn.dataset.filter);
+      });
+    });
+
+    // Swipe support
+    setupFlashcardSwipe();
+  }
+
+  function advanceFlashcard() {
+    const fc = state.flashcard;
+    fc.flipped = false;
+    if (fc.index + 1 >= fc.cards.length) {
+      fc.done = true;
+      renderFlashcardSummary();
+    } else {
+      fc.index++;
+      renderFlashcardView();
+    }
+  }
+
+  function renderFlashcardSummary() {
+    const container = $('#flashcardContainer');
+    if (!container) return;
+
+    const fc = state.flashcard;
+    const total = fc.correct + fc.incorrect;
+    const pct = total ? Math.round((fc.correct / total) * 100) : 0;
+
+    container.innerHTML = `
+      <div class="flashcard-summary">
+        <div class="flashcard-summary-icon">${pct >= 70 ? '🎉' : '📚'}</div>
+        <h2 class="flashcard-summary-title">Session Complete!</h2>
+        <p class="flashcard-summary-sub">جلسه تمام شد!</p>
+
+        <div class="flashcard-summary-stats">
+          <div class="flashcard-summary-stat correct">
+            <div class="flashcard-summary-num">${fc.correct}</div>
+            <div class="flashcard-summary-label">Correct / درست</div>
+          </div>
+          <div class="flashcard-summary-stat incorrect">
+            <div class="flashcard-summary-num">${fc.incorrect}</div>
+            <div class="flashcard-summary-label">Incorrect / اشتباه</div>
+          </div>
+          <div class="flashcard-summary-stat">
+            <div class="flashcard-summary-num">${pct}%</div>
+            <div class="flashcard-summary-label">Score / امتیاز</div>
+          </div>
+        </div>
+
+        <div class="flashcard-summary-bar">
+          <div class="flashcard-summary-fill" style="width:${pct}%;background:${pct >= 70 ? '#22c55e' : '#f59e0b'}"></div>
+        </div>
+
+        <div class="flashcard-summary-actions">
+          <button class="start-quiz-btn" id="fcRestartSummary">🔄 تلاش دوباره / Try Again</button>
+          <button class="start-quiz-btn" style="background:#fff;color:#4361ee;border:2px solid #4361ee" id="fcHomeSummary">🏠 خانه / Home</button>
+        </div>
+      </div>
+    `;
+
+    const restartBtn = $('#fcRestartSummary');
+    if (restartBtn) {
+      restartBtn.addEventListener('click', () => {
+        state.flashcard.cards = [];
+        state.flashcard.done = false;
+        renderFlashcardView();
+      });
+    }
+    const homeBtn = $('#fcHomeSummary');
+    if (homeBtn) {
+      homeBtn.addEventListener('click', () => {
+        showView('home');
+        renderCategories();
+      });
+    }
+  }
+
+  // Swipe support for flashcards
+  function setupFlashcardSwipe() {
+    const wrapper = $('#flashcardWrapper');
+    if (!wrapper) return;
+    let startX = 0;
+    let startY = 0;
+    let swiping = false;
+
+    wrapper.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      swiping = true;
+    }, { passive: true });
+
+    wrapper.addEventListener('touchend', (e) => {
+      if (!swiping) return;
+      swiping = false;
+      const endX = e.changedTouches[0].clientX;
+      const endY = e.changedTouches[0].clientY;
+      const diffX = endX - startX;
+      const diffY = endY - startY;
+
+      // Only count horizontal swipes
+      if (Math.abs(diffX) > 50 && Math.abs(diffX) > Math.abs(diffY)) {
+        const fc = state.flashcard;
+        if (diffX < 0) {
+          // Swipe left = incorrect
+          fc.incorrect++;
+          fc.reviewed++;
+          advanceFlashcard();
+        } else {
+          // Swipe right = correct
+          fc.correct++;
+          fc.reviewed++;
+          advanceFlashcard();
+        }
+      }
+    }, { passive: true });
+  }
+
+  // =============================================
+  // PROGRESS (existing header)
+  // =============================================
+  function updateProgress() {
+    const total = Object.keys(RULES).length;
+    const done = state.completedSections.filter(s => RULES[s]).length;
+    const pct = total ? Math.round((done / total) * 100) : 0;
+
+    const pt = $('#progressText');
+    if (pt) pt.textContent = pct + '%';
+    const pp = $('#progressPill');
+    if (pp) pp.style.background = pct > 0 ? 'rgba(248,247,244,.3)' : 'rgba(248,247,244,.12)';
+  }
+
+  function updateStats() {
+    const sc = $('#sectionsCompleted');
+    if (sc) sc.textContent = state.completedSections.filter(s => RULES[s]).length;
+    const qs = $('#quizScore');
+    if (qs) qs.textContent = state.lastQuizScore;
+  }
+
+  // =============================================
+  // EVENTS
+  // =============================================
+  function bindEvents() {
+    const backBtn = $('#backBtn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        stopListenAll();
+        showView('home');
+        renderCategories();
+      });
+    }
+    const quizBackBtn = $('#quizBackBtn');
+    if (quizBackBtn) {
+      quizBackBtn.addEventListener('click', () => {
+        showView('home');
+        renderCategories();
+      });
+    }
+    const langToggle = $('#langToggle');
+    if (langToggle) {
+      langToggle.addEventListener('click', () => {
+        document.documentElement.lang = document.documentElement.lang === 'fa' ? 'en' : 'fa';
+        document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl';
+      });
+    }
+    const searchInput = $('#searchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        renderCategories(e.target.value);
+      });
+    }
+
+    // Bottom nav
+    $$('.bottom-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.target;
+        if (target === 'home') {
+          showView('home');
+          renderCategories();
+        } else if (target === 'flashcards') {
+          openFlashcards();
+        } else if (target === 'progress') {
+          openProgress();
+        }
+      });
+    });
+  }
+
+  // =============================================
+  // UTILITIES
+  // =============================================
+  function escapeAttr(str) {
+    return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+
+  // =============================================
+  // GO
+  // =============================================
+  document.addEventListener('DOMContentLoaded', init);
+
+})();
