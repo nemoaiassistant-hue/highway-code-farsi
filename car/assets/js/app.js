@@ -20,6 +20,12 @@
     quizTimer: null,
     quizTimeRemaining: 0,
     quizStartedAt: null,
+    hazard: {
+      index: 0,
+      score: 0,
+      total: 0,
+      answers: {},
+    },
     completedSections: JSON.parse(localStorage.getItem('hc_completed') || '[]'),
     lastQuizScore: localStorage.getItem('hc_last_score') || '—',
     // Flashcard state
@@ -214,7 +220,7 @@
   // BOTTOM NAV
   // =============================================
   function updateBottomNav(active) {
-    const map = { home: 'navHome', read: 'navRead', flashcards: 'navFlashcards', progress: 'navProgress', showme: 'navShowMe', quiz: 'navQuiz' };
+    const map = { home: 'navHome', read: 'navRead', flashcards: 'navFlashcards', progress: 'navProgress', hazard: 'navHazard', showme: 'navShowMe', quiz: 'navQuiz' };
     const activeId = map[active] || 'navHome';
     $$('.bottom-nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.id === activeId);
@@ -242,11 +248,15 @@
   // SHOW ME / TELL ME
   // =============================================
   function ensureShowMeUI() {
-    $('#app').insertAdjacentHTML('beforeend', '<div class="view" id="showmeView"><div id="showmeContainer"></div></div>');
+    $('#app').insertAdjacentHTML('beforeend', '<div class="view" id="hazardView"><div id="hazardContainer"></div></div><div class="view" id="showmeView"><div id="showmeContainer"></div></div>');
     $('#bottomNav').insertAdjacentHTML('beforeend', `
       <button class="bottom-nav-item" id="navQuiz" data-target="quiz">
         <span class="bottom-nav-icon">📝</span>
         <span class="bottom-nav-label">آزمون<br><span dir="ltr">Quiz</span></span>
+      </button>
+      <button class="bottom-nav-item" id="navHazard" data-target="hazard">
+        <span class="bottom-nav-icon">⚠️</span>
+        <span class="bottom-nav-label">خطرات /<br><span dir="ltr">Hazards</span></span>
       </button>
       <button class="bottom-nav-item" id="navShowMe" data-target="showme" onclick="openShowMe()">
         <span class="bottom-nav-icon">🔧</span>
@@ -260,6 +270,151 @@
     showView('showme');
     renderShowMeView();
   };
+
+  // =============================================
+  // HAZARD PERCEPTION
+  // =============================================
+  const hazardCategoryLabels = {
+    junctions: 'تقاطع‌ها / Junctions', pedestrians: 'عابران پیاده / Pedestrians',
+    roadworks: 'عملیات جاده‌ای / Roadworks', weather: 'آب‌وهوا / Weather',
+    motorway: 'بزرگراه / Motorway', parking: 'پارک / Parking',
+    cyclists: 'دوچرخه‌سواران / Cyclists', roundabouts: 'میدان‌ها / Roundabouts',
+    night: 'رانندگی شبانه / Night driving', school_zones: 'محدوده مدرسه / School zones',
+    filtering: 'عبور از ترافیک / Filtering', lane_position: 'موقعیت خط / Lane position',
+    road_surface: 'سطح جاده / Road surface', blind_spots: 'نقاط کور / Blind spots',
+    braking_distance: 'فاصله ترمز / Braking distance', low_bridges: 'پل کوتاه / Low bridges',
+    load_security: 'ایمنی بار / Load security', tight_turns: 'پیچ تنگ / Tight turns',
+    merging: 'ادغام / Merging', reversing: 'دنده عقب / Reversing', rural: 'جاده روستایی / Rural roads'
+  };
+
+  function hazardScenarios() {
+    return window.HAZARD_SCENARIOS || [];
+  }
+
+  function openHazardGallery() {
+    showView('hazard');
+    const scenarios = hazardScenarios();
+    const container = $('#hazardContainer');
+    container.innerHTML = `
+      <div class="hazard-menu">
+        <div class="hazard-hero">
+          <span class="hazard-hero-icon">⚠️</span>
+          <h1>تشخیص خطر / Hazard Perception</h1>
+          <p>یک موقعیت را برای شروع انتخاب کنید</p>
+          <p dir="ltr">Choose a scenario to begin</p>
+        </div>
+        <div class="hazard-stats">
+          <div><strong>${scenarios.length}</strong><span>موقعیت / Scenarios</span></div>
+          <div><strong>${state.hazard.score}/${state.hazard.total}</strong><span>امتیاز جلسه / Session score</span></div>
+        </div>
+        <div class="hazard-gallery">
+          ${scenarios.map((scenario, index) => `
+            <button class="hazard-card" data-hazard-index="${index}">
+              <img src="${escapeAttr(scenario.image)}" alt="Hazard scenario ${scenario.id}">
+              <span class="hazard-card-number">${String(scenario.id).padStart(2, '0')}</span>
+              <span class="hazard-card-meta">
+                <span>${escapeHtml(hazardCategoryLabels[scenario.category] || scenario.category)}</span>
+                <span class="difficulty-${scenario.difficulty}">${escapeHtml(scenario.difficulty)}</span>
+              </span>
+            </button>`).join('')}
+        </div>
+      </div>`;
+    $$('.hazard-card').forEach(card => card.addEventListener('click', () => startHazardSession(Number(card.dataset.hazardIndex))));
+  }
+
+  function startHazardSession(index) {
+    state.hazard.index = index;
+    state.hazard.score = 0;
+    state.hazard.total = 0;
+    state.hazard.answers = {};
+    showView('hazard');
+    renderHazardScenario();
+  }
+
+  function renderHazardScenario() {
+    const scenarios = hazardScenarios();
+    const scenario = scenarios[state.hazard.index];
+    if (!scenario) return openHazardGallery();
+    const answer = state.hazard.answers[scenario.id];
+    const container = $('#hazardContainer');
+    container.innerHTML = `
+      <div class="hazard-course">
+        <button class="back-btn" id="hazardGallery">← گالری / Gallery</button>
+        <div class="hazard-progress">
+          <div><span>${state.hazard.index + 1} / ${scenarios.length}</span><span>امتیاز / Score: ${state.hazard.score}/${state.hazard.total}</span></div>
+          <div class="hazard-progress-track"><span style="width:${((state.hazard.index + 1) / scenarios.length) * 100}%"></span></div>
+        </div>
+        <article class="hazard-scene">
+          <div class="hazard-badges"><span>${escapeHtml(hazardCategoryLabels[scenario.category] || scenario.category)}</span><span class="difficulty-${scenario.difficulty}">${escapeHtml(scenario.difficulty)}</span></div>
+          <img src="${escapeAttr(scenario.image)}" alt="Hazard scenario ${scenario.id}" class="hazard-image">
+          <h2>کدام خطر اصلی را می‌بینید؟ / What is the main developing hazard?</h2>
+          <p class="hazard-scene-main">${escapeHtml(scenario.sceneFa)}</p>
+          <p class="hazard-scene-secondary" dir="ltr">${escapeHtml(scenario.sceneEn)}</p>
+        </article>
+        <div class="hazard-options">
+          ${scenario.options.map(option => {
+            const isCorrect = answer && option.id === scenario.correctOption;
+            const isWrong = answer && option.id === answer.optionId && !answer.correct;
+            return `<button class="hazard-option ${isCorrect ? 'correct' : ''} ${isWrong ? 'wrong' : ''}" data-option="${option.id}" ${answer ? 'disabled' : ''}>
+              <b>${option.id.toUpperCase()}</b><span>${escapeHtml(option.textFa)}<small dir="ltr">${escapeHtml(option.textEn)}</small></span>
+            </button>`;
+          }).join('')}
+        </div>
+        ${answer ? hazardFeedback(scenario, answer.correct) : ''}
+        <div class="hazard-navigation">
+          <button class="hazard-secondary" id="hazardPrevious" ${state.hazard.index === 0 ? 'disabled' : ''}>← قبلی / Previous</button>
+          <button class="hazard-primary" id="hazardNext">${state.hazard.index === scenarios.length - 1 ? 'پایان / Finish' : 'بعدی / Next →'}</button>
+        </div>
+      </div>`;
+    $('#hazardGallery').addEventListener('click', openHazardGallery);
+    $$('.hazard-option').forEach(button => button.addEventListener('click', () => answerHazard(button.dataset.option)));
+    $('#hazardPrevious').addEventListener('click', () => {
+      if (state.hazard.index > 0) state.hazard.index--;
+      renderHazardScenario();
+    });
+    $('#hazardNext').addEventListener('click', () => {
+      if (state.hazard.index === scenarios.length - 1) renderHazardSummary();
+      else {
+        state.hazard.index++;
+        renderHazardScenario();
+      }
+    });
+  }
+
+  function answerHazard(optionId) {
+    const scenario = hazardScenarios()[state.hazard.index];
+    if (!scenario || state.hazard.answers[scenario.id]) return;
+    const correct = optionId === scenario.correctOption;
+    state.hazard.answers[scenario.id] = { optionId, correct };
+    state.hazard.total++;
+    if (correct) state.hazard.score++;
+    renderHazardScenario();
+  }
+
+  function hazardFeedback(scenario, correct) {
+    return `<div class="hazard-feedback ${correct ? 'is-correct' : 'is-wrong'}">
+      <h3>${correct ? '✅ درست / Correct' : '❌ نادرست / Wrong'}</h3>
+      <p>${escapeHtml(scenario.explanationFa)}</p>
+      <p dir="ltr">${escapeHtml(scenario.explanationEn)}</p>
+      <div class="hazard-tip"><strong>نکته / Tip:</strong> ${escapeHtml(scenario.tipFa)}<div dir="ltr">${escapeHtml(scenario.tipEn)}</div></div>
+    </div>`;
+  }
+
+  function renderHazardSummary() {
+    const percent = state.hazard.total ? Math.round((state.hazard.score / state.hazard.total) * 100) : 0;
+    $('#hazardContainer').innerHTML = `
+      <div class="hazard-result">
+        <span>${percent >= 80 ? '✓' : '⚠️'}</span>
+        <h1>پایان جلسه / Session complete</h1>
+        <strong>${state.hazard.score} / ${state.hazard.total}</strong>
+        <div class="hazard-result-bar"><span style="width:${percent}%"></span></div>
+        <p>${percent}% پاسخ درست / correct</p>
+        <button class="hazard-primary" id="hazardRestart">شروع دوباره / Start again</button>
+        <button class="hazard-secondary" id="hazardSummaryGallery">گالری موقعیت‌ها / Scenario gallery</button>
+      </div>`;
+    $('#hazardRestart').addEventListener('click', () => startHazardSession(0));
+    $('#hazardSummaryGallery').addEventListener('click', openHazardGallery);
+  }
 
   function renderShowMeView() {
     const container = $('#showmeContainer');
@@ -1545,6 +1700,8 @@
           openProgress();
         } else if (target === 'quiz') {
           openQuizMenu();
+        } else if (target === 'hazard') {
+          openHazardGallery();
         }
       });
     });
