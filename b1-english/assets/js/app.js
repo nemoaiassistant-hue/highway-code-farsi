@@ -474,7 +474,9 @@ function renderQuiz(){
     }
     html += '<button data-opt="' + opt.id + '" class="' + cls + '">' +
       '<span class="quiz-opt-letter">' + optLabels[opt.id] + '</span>' +
-      '<span>' + opt[t("text")] + '</span></button>';
+      '<span class="quiz-opt-text">' + opt[t("text")] +
+      (state.lang === "fa" ? '<span class="en-text"> ' + opt.textEn + '</span>' : '') +
+      '</span></button>';
   }
   html += '</div>';
 

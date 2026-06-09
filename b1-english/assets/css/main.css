@@ -10,6 +10,7 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 80px);
 }
 .en-text { direction: ltr; text-align: left; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+.quiz-opt .en-text { font-size: 0.8em; color: #888; margin-right: 6px; display: inline; }
 
 /* ===== LOADING ===== */
 .loading { text-align: center; padding: 60px 20px; color: #888; font-size: 16px; }
