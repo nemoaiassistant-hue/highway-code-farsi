@@ -2375,7 +2375,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 "id": 75,
 "topic": "government",
 "difficulty": "medium",
-"questionFa": "انتخابات هر چند سال؟",
+"questionFa": "انتخابات هر چند سال یک‌بار برگزار می‌شود؟",
 "questionEn": "Election frequency?",
 "options": [
 {
@@ -2400,14 +2400,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "c",
-"explanationFa": "حداقل هر ۵ سال.",
+"explanationFa": "انتخابات عمومی حداقل هر ۵ سال یک‌بار برگزار می‌شود.",
 "explanationEn": "At least every 5 years."
 },
 {
 "id": 76,
 "topic": "government",
 "difficulty": "medium",
-"questionFa": "PM چه کسی منصوب می‌کند؟",
+"questionFa": "نخست‌وزیر چه کسی را منصوب می‌کند؟",
 "questionEn": "PM appoints?",
 "options": [
 {
@@ -2432,7 +2432,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "وزرا.",
+"explanationFa": "نخست‌وزیر وزرا را منصوب می‌کند.",
 "explanationEn": "Ministers."
 },
 {
@@ -2449,7 +2449,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 },
 {
 "id": "b",
-"textFa": "پادشاه ملکه",
+"textFa": "پادشاه یا ملکه",
 "textEn": "Monarch"
 },
 {
@@ -2464,14 +2464,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "پادشاه ملکه.",
+"explanationFa": "رئیس دولت بریتانیا پادشاه یا ملکه است.",
 "explanationEn": "Monarch."
 },
 {
 "id": 78,
 "topic": "government",
 "difficulty": "medium",
-"questionFa": "PM را چه کسی مشخص می‌کند؟",
+"questionFa": "نخست‌وزیر را چه کسی تعیین می‌کند؟",
 "questionEn": "Who determines PM?",
 "options": [
 {
@@ -2496,7 +2496,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "c",
-"explanationFa": "اکثریت مجلس عوام.",
+"explanationFa": "نخست‌وزیر را اکثریت مجلس عوام تعیین می‌کند.",
 "explanationEn": "Commons majority."
 },
 {
@@ -2528,7 +2528,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "بررسی اصلاح.",
+"explanationFa": "مجلس لردها قوانین را بررسی و اصلاح می‌کند.",
 "explanationEn": "Review and amend."
 },
 {
@@ -2567,7 +2567,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 "id": 81,
 "topic": "government",
 "difficulty": "easy",
-"questionFa": "بریتانیا چند کشور دارد؟",
+"questionFa": "بریتانیا از چند کشور تشکیل شده است؟",
 "questionEn": "UK countries?",
 "options": [
 {
@@ -2591,8 +2591,8 @@ window.LIFE_IN_UK_QUESTIONS = [
 "textEn": "Five"
 }
 ],
-"correctOption": "d",
-"explanationFa": "انگلستان اسکاتلند ولز ایرلند شمالی.",
+"correctOption": "c",
+"explanationFa": "بریتانیا از انگلستان، اسکاتلند، ولز و ایرلند شمالی تشکیل شده است.",
 "explanationEn": "England Scotland Wales NI."
 },
 {
@@ -2624,7 +2624,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "خدمات محلی.",
+"explanationFa": "شورای محلی مسئول ارائه خدمات محلی است.",
 "explanationEn": "Local services."
 },
 {
@@ -2656,14 +2656,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "PM و کابینه.",
+"explanationFa": "قوه مجریه شامل نخست‌وزیر و کابینه است.",
 "explanationEn": "PM and cabinet."
 },
 {
 "id": 84,
 "topic": "government",
 "difficulty": "easy",
-"questionFa": "بریتانیا چه حکومتی دارد؟",
+"questionFa": "حکومت بریتانیا از چه نوعی است؟",
 "questionEn": "UK government type?",
 "options": [
 {
@@ -2688,7 +2688,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "پادشاهی مشروطه.",
+"explanationFa": "بریتانیا یک پادشاهی مشروطه است.",
 "explanationEn": "Constitutional monarchy."
 },
 {
@@ -2727,7 +2727,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 "id": 86,
 "topic": "geography",
 "difficulty": "easy",
-"questionFa": "پایتخت اسکاتلند؟",
+"questionFa": "پایتخت اسکاتلند کدام شهر است؟",
 "questionEn": "Scotland capital?",
 "options": [
 {
@@ -2752,14 +2752,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "ادینبورگ.",
+"explanationFa": "پایتخت اسکاتلند ادینبورگ است.",
 "explanationEn": "Edinburgh."
 },
 {
 "id": 87,
 "topic": "geography",
 "difficulty": "easy",
-"questionFa": "پایتخت ولز؟",
+"questionFa": "پایتخت ولز کدام شهر است؟",
 "questionEn": "Wales capital?",
 "options": [
 {
@@ -2784,14 +2784,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "کاردیف.",
+"explanationFa": "پایتخت ولز کاردیف است.",
 "explanationEn": "Cardiff."
 },
 {
 "id": 88,
 "topic": "geography",
 "difficulty": "medium",
-"questionFa": "طولانی‌ترین رودخانه؟",
+"questionFa": "طولانی‌ترین رودخانه بریتانیا کدام است؟",
 "questionEn": "Longest UK river?",
 "options": [
 {
@@ -2816,14 +2816,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "سورن 354 کیلومتر.",
+"explanationFa": "رودخانه سورن طولانی‌ترین رودخانه بریتانیا با ۳۵۴ کیلومتر طول است.",
 "explanationEn": "Severn 354 km."
 },
 {
 "id": 89,
 "topic": "geography",
 "difficulty": "medium",
-"questionFa": "بلندترین قله؟",
+"questionFa": "بلندترین قله بریتانیا کدام است؟",
 "questionEn": "Highest UK peak?",
 "options": [
 {
@@ -2848,7 +2848,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "a",
-"explanationFa": "بن نویس 1344 متر.",
+"explanationFa": "بن نویس بلندترین قله بریتانیا با ۱۳۴۴ متر ارتفاع است.",
 "explanationEn": "Ben Nevis 1344m."
 },
 {
@@ -2944,7 +2944,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "c",
-"explanationFa": "انگلستان.",
+"explanationFa": "منچستر در انگلستان قرار دارد.",
 "explanationEn": "England."
 },
 {
@@ -3008,14 +3008,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "ایرلند شمالی.",
+"explanationFa": "بلفاست پایتخت ایرلند شمالی است.",
 "explanationEn": "Northern Ireland."
 },
 {
 "id": 95,
 "topic": "geography",
 "difficulty": "easy",
-"questionFa": "پارک ملی لیک دیستریکت؟",
+"questionFa": "پارک ملی لیک دیستریکت در کدام کشور است؟",
 "questionEn": "Lake District?",
 "options": [
 {
@@ -3040,7 +3040,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "شمال غربی انگلستان.",
+"explanationFa": "پارک ملی لیک دیستریکت در شمال غربی انگلستان قرار دارد.",
 "explanationEn": "Northwest England."
 },
 {
@@ -3072,7 +3072,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "رودخانه تمز.",
+"explanationFa": "رودخانه تمز از لندن می‌گذرد.",
 "explanationEn": "River Thames."
 },
 {
@@ -3104,14 +3104,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "انگلیسی.",
+"explanationFa": "شکسپیر نمایشنامه‌نویس انگلیسی بوده است.",
 "explanationEn": "English."
 },
 {
 "id": 98,
 "topic": "culture",
 "difficulty": "easy",
-"questionFa": "لیگ برتر فوتبال؟",
+"questionFa": "لیگ فوتبال انگلیس چه نام دارد؟",
 "questionEn": "Premier league?",
 "options": [
 {
@@ -3136,7 +3136,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "Premier League.",
+"explanationFa": "لیگ برتر فوتبال انگلیس (Premier League) نام دارد.",
 "explanationEn": "Premier League."
 },
 {
@@ -3168,7 +3168,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "c",
-"explanationFa": "قدیس حامی انگلستان.",
+"explanationFa": "سنت جورج قدیس حامی انگلستان است.",
 "explanationEn": "Englands patron saint."
 },
 {
@@ -3200,7 +3200,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "a",
-"explanationFa": "قدیس حامی اسکاتلند.",
+"explanationFa": "سنت اندرو قدیس حامی اسکاتلند است.",
 "explanationEn": "Scotlands patron saint."
 },
 {
@@ -3232,7 +3232,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "قدیس حامی ولز.",
+"explanationFa": "سنت دیوید قدیس حامی ولز است.",
 "explanationEn": "Wales patron saint."
 },
 {
@@ -3264,14 +3264,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "c",
-"explanationFa": "انگلستان.",
+"explanationFa": "رز سرخ نماد ملی انگلستان است.",
 "explanationEn": "England."
 },
 {
 "id": 103,
 "topic": "culture",
 "difficulty": "medium",
-"questionFa": "نمایش کریسمس در چه عیدی؟",
+"questionFa": "نمایش تولد مسیح در چه مناسبتی اجرا می‌شود؟",
 "questionEn": "Nativity plays at?",
 "options": [
 {
@@ -3296,7 +3296,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "کریسمس.",
+"explanationFa": "این نمایش در عید کریسمس اجرا می‌شود.",
 "explanationEn": "Christmas."
 },
 {
@@ -3328,14 +3328,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "لیورپول.",
+"explanationFa": "بیتلز گروه موسیقی لیورپول بوده‌اند.",
 "explanationEn": "Liverpool."
 },
 {
 "id": 105,
 "topic": "culture",
 "difficulty": "medium",
-"questionFa": "نماد ملی اسکاتلند؟",
+"questionFa": "نماد ملی اسکاتلند چیست؟",
 "questionEn": "Scotland symbol?",
 "options": [
 {
@@ -3360,7 +3360,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "خار (نشان ملی اسکاتلند).",
+"explanationFa": "نماد ملی اسکاتلند خار (گل میخکی) است.",
 "explanationEn": "Thistle."
 },
 {
@@ -3392,14 +3392,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "رستاخیز مسیح.",
+"explanationFa": "عید پاک به مناسبت رستاخیز مسیح برگزار می‌شود.",
 "explanationEn": "Resurrection of Christ."
 },
 {
 "id": 107,
 "topic": "culture",
 "difficulty": "medium",
-"questionFa": "غرور تعصب اثر چه کسی؟",
+"questionFa": "غرور و تعصب اثر چه کسی است؟",
 "questionEn": "Pride and Prejudice by?",
 "options": [
 {
@@ -3424,7 +3424,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "جین آستن.",
+"explanationFa": "غرور و تعصب اثر جین آستن است.",
 "explanationEn": "Jane Austen."
 },
 {
@@ -3456,14 +3456,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "ورزشگاه لردز.",
+"explanationFa": "ورزشگاه معروف کریکت لردز است.",
 "explanationEn": "Lords Cricket Ground."
 },
 {
 "id": 109,
 "topic": "society",
 "difficulty": "easy",
-"questionFa": "زبان رسمی بریتانیا؟",
+"questionFa": "زبان رسمی بریتانیا کدام است؟",
 "questionEn": "Official UK language?",
 "options": [
 {
@@ -3488,14 +3488,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "انگلیسی.",
+"explanationFa": "زبان رسمی بریتانیا انگلیسی است.",
 "explanationEn": "English."
 },
 {
 "id": 110,
 "topic": "society",
 "difficulty": "medium",
-"questionFa": "ولز چه زبان‌ها رسمی دارد؟",
+"questionFa": "در ولز چه زبان‌هایی رسمی هستند؟",
 "questionEn": "Wales official languages?",
 "options": [
 {
@@ -3552,14 +3552,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "تنوع فرهنگی.",
+"explanationFa": "بریتانیا چندفرهنگی یعنی نژادها و فرهنگ‌های مختلف در کنار هم زندگی می‌کنند.",
 "explanationEn": "Cultural diversity."
 },
 {
 "id": 112,
 "topic": "society",
 "difficulty": "medium",
-"questionFa": "بزرگترین اقلیت مذهبی؟",
+"questionFa": "بزرگترین اقلیت مذهبی چیست؟",
 "questionEn": "Largest religious minority?",
 "options": [
 {
@@ -3584,7 +3584,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "c",
-"explanationFa": "مسلمانان.",
+"explanationFa": "بزرگترین اقلیت مذهبی در بریتانیا، مسلمانان هستند.",
 "explanationEn": "Muslims."
 },
 {
@@ -3648,14 +3648,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "تا ۱۶ سال.",
+"explanationFa": "آموزش در بریتانیا تا سن ۱۶ سالگی الزامی است.",
 "explanationEn": "Until 16."
 },
 {
 "id": 115,
 "topic": "society",
 "difficulty": "hard",
-"questionFa": "خدمات عمومی از کجا تأمین؟",
+"questionFa": "خدمات عمومی از کجا تأمین می‌شود؟",
 "questionEn": "Public services funded by?",
 "options": [
 {
@@ -3680,14 +3680,14 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "مالیات.",
+"explanationFa": "خدمات عمومی از طریق مالیات تأمین می‌شود.",
 "explanationEn": "Taxes."
 },
 {
 "id": 116,
 "topic": "society",
 "difficulty": "medium",
-"questionFa": "حقوق بشر بر اساس چه سندی؟",
+"questionFa": "حقوق بشر در بریتانیا بر اساس چه سندی است؟",
 "questionEn": "Human rights based on?",
 "options": [
 {
@@ -3712,7 +3712,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "کنوانسیون اروپایی.",
+"explanationFa": "حقوق بشر در بریتانیا بر اساس کنوانسیون اروپایی حقوق بشر تعیین شده‌اند.",
 "explanationEn": "European Convention."
 },
 {
@@ -3751,7 +3751,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 "id": 118,
 "topic": "society",
 "difficulty": "medium",
-"questionFa": "تبعیض نژادی مذهبی در بریتانیا؟",
+"questionFa": "آیا تبعیض نژادی و مذهبی در بریتانیا قانونی است؟",
 "questionEn": "Racial discrimination?",
 "options": [
 {
@@ -3776,7 +3776,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "غیرقانونی.",
+"explanationFa": "تبعیض نژادی و مذهبی در بریتانیا غیرقانونی و جرم محسوب می‌شود.",
 "explanationEn": "Illegal."
 },
 {
@@ -3808,7 +3808,7 @@ window.LIFE_IN_UK_QUESTIONS = [
 }
 ],
 "correctOption": "b",
-"explanationFa": "حقوق اروپایی در قانون.",
+"explanationFa": "قانون حقوق بشر ۱۹۹۸ حقوق اساسی اروپایی را در قانون بریتانیا گنجاند.",
 "explanationEn": "European rights in UK law."
 },
 {
@@ -3835,12 +3835,12 @@ window.LIFE_IN_UK_QUESTIONS = [
 },
 {
 "id": "d",
-"textFa": "منطقه قراردادی",
+"textFa": "منطقه تحت توافق ویژه",
 "textEn": "Contract zone"
 }
 ],
 "correctOption": "b",
-"explanationFa": "بخشی از بریتانیا.",
+"explanationFa": "ایرلند شمالی بخشی از بریتانیا است.",
 "explanationEn": "Part of the UK."
 }
 ];
