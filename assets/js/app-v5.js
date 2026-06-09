@@ -1226,6 +1226,8 @@
       langToggle.addEventListener('click', () => {
         document.documentElement.lang = document.documentElement.lang === 'fa' ? 'en' : 'fa';
         document.documentElement.dir = document.documentElement.dir === 'rtl' ? 'ltr' : 'rtl';
+        const isNowFa = document.documentElement.lang === 'fa';
+        langToggle.querySelector('.lang-flag').textContent = isNowFa ? '🇮🇷' : '🇬🇧';
       });
     }
     const searchInput = $('#searchInput');
