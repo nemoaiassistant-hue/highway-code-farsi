@@ -1,4 +1,5 @@
 // B1 English — Quiz Controller (Trinity GESE Grade 5)
+// Rewritten to match Life in the UK course architecture
 (function(){
 "use strict";
 
@@ -8,13 +9,14 @@ var PASS_MARK = 70;
 
 var state = {
   lang: "fa",
-  view: "home", // home, quiz, speaking, guide, results
-  mode: "grammar", // grammar, vocabulary, speaking
+  view: "home", // home, quiz, speaking, guide, results, study
+  mode: "grammar", // grammar, vocabulary
   questions: [],
   currentIndex: 0,
   answers: {},
   score: 0,
-  filter: null, // grammar category or vocab topic filter
+  filter: null,
+  difficultyFilter: null,
   speakingIndex: 0,
   speakingViewed: [],
   guideRead: [],
@@ -25,28 +27,24 @@ var state = {
   promptsViewed: 0
 };
 
-function t(key){ return state.lang==="fa" ? key+"Fa" : key+"En"; }
+function t(key){ return state.lang === "fa" ? key + "Fa" : key + "En"; }
 
+// ===== DATA HELPERS =====
 function getGrammarInfo(){
   return (window.B1_SPEAKING_DATA && window.B1_SPEAKING_DATA.grammarInfo) || {};
 }
-
 function getTopicInfo(){
   return (window.B1_SPEAKING_DATA && window.B1_SPEAKING_DATA.topicInfo) || {};
 }
-
 function getGrammarQuestions(){
   return (window.B1_ENGLISH_DATA && window.B1_ENGLISH_DATA.grammarQuestions) || [];
 }
-
 function getVocabQuestions(){
   return (window.B1_ENGLISH_DATA && window.B1_ENGLISH_DATA.vocabularyQuestions) || [];
 }
-
 function getSpeakingPrompts(){
   return (window.B1_SPEAKING_DATA && window.B1_SPEAKING_DATA.speakingPrompts) || [];
 }
-
 function getTopicGuide(){
   return (window.B1_SPEAKING_DATA && window.B1_SPEAKING_DATA.topicGuide) || [];
 }
@@ -96,10 +94,11 @@ function getDiffColor(d){
   return d === "easy" ? "#00b894" : d === "medium" ? "#fdcb6e" : "#d63031";
 }
 
-// ===== QUIZ =====
-function startQuiz(mode, filter){
+// ===== QUIZ LOGIC =====
+function startQuiz(mode, filter, diff){
   state.mode = mode || "grammar";
   state.filter = filter || null;
+  state.difficultyFilter = diff || null;
   var pool = [];
 
   if(state.mode === "grammar"){
@@ -110,8 +109,11 @@ function startQuiz(mode, filter){
     if(state.filter) pool = pool.filter(function(q){ return q.topic === state.filter; });
   }
 
+  if(state.difficultyFilter){
+    pool = pool.filter(function(q){ return q.difficulty === state.difficultyFilter; });
+  }
+
   if(pool.length < QUIZ_SIZE){
-    // fallback: use all if filter has too few
     if(state.mode === "grammar") pool = getGrammarQuestions();
     else pool = getVocabQuestions();
   }
@@ -130,38 +132,26 @@ function handleAnswer(optionId){
   state.answers[state.currentIndex] = optionId;
   if(optionId === q.correctOption) state.score++;
 
-  render(); // show feedback
-
   if(state.currentIndex < state.questions.length - 1){
-    setTimeout(function(){
-      state.currentIndex++;
-      render();
-    }, 1200);
+    setTimeout(function(){ state.currentIndex++; render(); }, 400);
   } else {
-    setTimeout(function(){
-      finishQuiz();
-    }, 1200);
+    state.totalAttempts++;
+    if(state.score > state.bestScore) state.bestScore = state.score;
+    var pct = Math.round((state.score / state.questions.length) * 100);
+    if(pct >= PASS_MARK) state.passed++;
+    state.history.unshift({
+      date: new Date().toISOString(),
+      score: state.score,
+      total: state.questions.length,
+      pct: pct,
+      passed: pct >= PASS_MARK,
+      mode: state.mode,
+      filter: state.filter
+    });
+    if(state.history.length > 50) state.history = state.history.slice(0, 50);
+    save();
+    setTimeout(function(){ state.view = "results"; render(); }, 600);
   }
-}
-
-function finishQuiz(){
-  state.totalAttempts++;
-  if(state.score > state.bestScore) state.bestScore = state.score;
-  var pct = Math.round((state.score / state.questions.length) * 100);
-  if(pct >= PASS_MARK) state.passed++;
-
-  state.history.unshift({
-    date: new Date().toISOString(),
-    score: state.score,
-    total: state.questions.length,
-    pct: pct,
-    passed: pct >= PASS_MARK,
-    mode: state.mode,
-    filter: state.filter
-  });
-  if(state.history.length > 50) state.history = state.history.slice(0, 50);
-  save();
-  state.view = "results";
   render();
 }
 
@@ -198,11 +188,10 @@ function toggleGuideSection(idx){
   }
   var el = document.getElementById("guide-body-" + idx);
   var hdr = document.getElementById("guide-hdr-" + idx);
-  if(el){
-    el.classList.toggle("open");
-    if(hdr) hdr.classList.toggle("open");
-  }
-  // Update rendered button
+  if(el) el.classList.toggle("open");
+  if(hdr) hdr.classList.toggle("open");
+  var card = document.getElementById("guide-card-" + idx);
+  if(card) card.classList.toggle("open");
   var btn = document.getElementById("guide-mark-" + idx);
   if(btn){
     if(state.guideRead.indexOf(idx) !== -1){
@@ -213,84 +202,60 @@ function toggleGuideSection(idx){
 }
 
 // ===== NAV =====
-function nav(view){
-  state.view = view;
-  render();
-}
+function nav(view){ state.view = view; render(); }
 
 function toggleLang(){
   state.lang = state.lang === "fa" ? "en" : "fa";
-  save();
-  render();
+  save(); render();
 }
 
 // ===== RENDER =====
 function render(){
   var app = document.getElementById("app");
   if(!app) return;
-
-  var headerHTML = renderHeader();
-  var bodyHTML = "";
-
   switch(state.view){
-    case "home": bodyHTML = renderHome(); break;
-    case "quiz": bodyHTML = renderQuiz(); break;
-    case "speaking": bodyHTML = renderSpeaking(); break;
-    case "guide": bodyHTML = renderGuide(); break;
-    case "results": bodyHTML = renderResults(); break;
+    case "home": app.innerHTML = renderHome(); break;
+    case "study": app.innerHTML = renderStudy(); break;
+    case "quiz": app.innerHTML = renderQuiz(); break;
+    case "speaking": app.innerHTML = renderSpeaking(); break;
+    case "guide": app.innerHTML = renderGuide(); break;
+    case "results": app.innerHTML = renderResults(); break;
   }
-
-  var navHTML = renderBottomNav();
-  app.innerHTML = headerHTML + bodyHTML + navHTML;
   bindEvents();
+  updateProgress();
 }
 
+function updateProgress(){
+  var el = document.getElementById("progress-bar");
+  if(!el) return;
+  if(state.view === "quiz"){
+    var pct = ((state.currentIndex) / state.questions.length) * 100;
+    el.style.width = pct + "%";
+    el.style.display = "block";
+    var cnt = document.getElementById("progress-count");
+    if(cnt) cnt.textContent = (state.currentIndex + 1) + "/" + state.questions.length;
+  } else {
+    el.style.display = "none";
+  }
+}
+
+// ===== HEADER (Life in the UK pattern) =====
 function renderHeader(){
   var isFA = state.lang === "fa";
-  var pillText = "";
-
-  if(state.view === "quiz"){
-    var q = state.questions[state.currentIndex];
-    if(q) pillText = (state.currentIndex + 1) + "/" + state.questions.length;
-  }
-
-  return '<header class="app-header"><div class="header-inner">' +
-    '<div class="brand" id="brand-home">' +
-    '<span class="brand-icon">📝</span>' +
-    '<div class="brand-text">' +
-    '<span class="brand-fa">آمادگی B1</span>' +
-    '<span class="brand-en">B1 English Prep</span>' +
-    '</div></div>' +
-    '<div class="header-actions">' +
-    (pillText ? '<span class="progress-pill">' + pillText + '</span>' : '') +
-    '<div class="lang-flags">' +
-    '<button class="lang-flag-btn' + (state.lang === "fa" ? " active" : "") + '" id="lang-fa">🇮🇷</button>' +
-    '<button class="lang-flag-btn' + (state.lang === "en" ? " active" : "") + '" id="lang-en">🇬🇧</button>' +
-    '</div></div></div></header>';
+  return '<header class="app-header">' +
+    '<div class="header-left">' +
+    '<button id="btn-home" class="icon-btn">&#9664;</button>' +
+    '</div>' +
+    '<div class="header-center">' +
+    '<h1 class="header-title">' + (isFA ? "آمادگی آزمون B1" : "B1 English Test Prep") + '</h1>' +
+    '</div>' +
+    '<div class="header-right">' +
+    '<button id="btn-lang" class="lang-toggle">' + (isFA ? "EN" : "فا") + '</button>' +
+    '</div>' +
+    '</header>';
 }
 
-function renderBottomNav(){
-  var isFA = state.lang === "fa";
-  var items = [
-    { id: "nav-home", icon: "🏠", label: isFA ? "خانه" : "Home", view: "home" },
-    { id: "nav-quiz", icon: "📝", label: isFA ? "آزمون" : "Quiz", view: "quiz" },
-    { id: "nav-speaking", icon: "🗣", label: isFA ? "صحبت" : "Speaking", view: "speaking" },
-    { id: "nav-guide", icon: "📖", label: isFA ? "راهنما" : "Guide", view: "guide" }
-  ];
-
-  var html = '<nav class="bottom-nav">';
-  for(var i = 0; i < items.length; i++){
-    var it = items[i];
-    var active = (state.view === it.view) || (it.view === "quiz" && state.view === "results");
-    html += '<button class="bottom-nav-item' + (active ? " active" : "") + '" data-nav="' + it.view + '">' +
-      '<span class="bottom-nav-icon">' + it.icon + '</span>' +
-      '<span class="bottom-nav-label">' + it.label + '</span></button>';
-  }
-  html += '</nav>';
-  return html;
-}
-
-// ===== HOME VIEW =====
+// ===== HOME VIEW (Life in the UK pattern) =====
 function renderHome(){
   var isFA = state.lang === "fa";
   var grammarQs = getGrammarQuestions();
@@ -298,6 +263,8 @@ function renderHome(){
   var prompts = getSpeakingPrompts();
   var gInfo = getGrammarInfo();
   var tInfo = getTopicInfo();
+  var passRate = state.totalAttempts > 0 ? Math.round((state.passed / state.totalAttempts) * 100) : 0;
+  var totalQs = grammarQs.length + vocabQs.length;
 
   // Count by category/topic
   var grammarCats = {};
@@ -313,87 +280,89 @@ function renderHome(){
     vocabTopics[v]++;
   }
 
-  var html = '<main class="view active">';
+  var html = renderHeader();
+  html += '<div class="progress-wrapper"><div id="progress-bar" class="progress-bar"></div></div>';
+  html += '<main class="container">';
 
-  // Hero
-  html += '<div class="hero">' +
-    '<div class="hero-icon">🎓</div>' +
-    '<div class="hero-title">' + (isFA ? "آمادگی آزمون B1 انگلیسی" : "B1 English Test Prep") + '</div>' +
-    '<div class="hero-sub">' + (isFA ? "Trinity GESE Grade 5 — Speaking & Listening" : "Trinity GESE Grade 5 — Speaking & Listening") + '</div>' +
-    '<div class="hero-sub-en">B1 CEFR Level Practice</div>' +
-    '<span class="hero-badge">' + (isFA ? "سطح B1" : "B1 Level") + '</span></div>';
+  // Stats bar (4 cards like Life in the UK)
+  html += '<div class="stats-bar">' +
+    '<div class="stat-card"><div class="stat-num">' + totalQs + '</div><div class="stat-label">' + (isFA ? "سوال" : "Questions") + '</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + QUIZ_SIZE + '</div><div class="stat-label">' + (isFA ? "سوال هر آزمون" : "Per Quiz") + '</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + state.totalAttempts + '</div><div class="stat-label">' + (isFA ? "تلاش" : "Attempts") + '</div></div>' +
+    '<div class="stat-card"><div class="stat-num">' + passRate + '%</div><div class="stat-label">' + (isFA ? "نرخ قبولی" : "Pass Rate") + '</div></div>' +
+    '</div>';
 
-  // Stats
-  html += '<div class="stats-row">' +
-    '<div class="stat-card"><span class="stat-num">' + grammarQs.length + '</span><span class="stat-label">' + (isFA ? "سوال گرامر" : "Grammar Qs") + '</span></div>' +
-    '<div class="stat-card pink"><span class="stat-num">' + vocabQs.length + '</span><span class="stat-label">' + (isFA ? "سوال واژگان" : "Vocab Qs") + '</span></div>' +
-    '<div class="stat-card"><span class="stat-num">' + prompts.length + '</span><span class="stat-label">' + (isFA ? "پامپت صحبت" : "Speaking") + '</span></div>' +
-    '<div class="stat-card"><span class="stat-num">' + state.totalAttempts + '</span><span class="stat-label">' + (isFA ? "تلاش" : "Attempts") + '</span></div></div>';
+  // Quick Start
+  html += '<section class="section"><h2 class="section-title">' + (isFA ? "شروع سریع" : "Quick Start") + '</h2>' +
+    '<div class="quick-start">' +
+    '<button id="btn-quiz-all" class="btn btn-primary btn-large">' + (isFA ? "آزمون تصادفی ۱۰ سوالی" : "Random 10-Question Quiz") + '</button>' +
+    '</div></section>';
 
-  // Quick Actions
-  html += '<div class="quick-actions">' +
-    '<button class="quick-action-btn" id="qa-random-grammar"><span class="quick-action-icon">🎲</span><span class="quick-action-label">' + (isFA ? "گرامر تصادفی" : "Random Grammar") + '</span><span class="quick-action-label-en">10 Questions</span></button>' +
-    '<button class="quick-action-btn" id="qa-random-vocab"><span class="quick-action-icon">📚</span><span class="quick-action-label">' + (isFA ? "واژگان تصادفی" : "Random Vocab") + '</span><span class="quick-action-label-en">10 Questions</span></button>' +
-    '<button class="quick-action-btn" id="qa-speaking"><span class="quick-action-icon">🗣</span><span class="quick-action-label">' + (isFA ? "آمادگی صحبت" : "Speaking Prep") + '</span><span class="quick-action-label-en">48 Prompts</span></button></div>';
+  // Mode Filter (3 cards like Life in the UK topic filter)
+  html += '<section class="section"><h2 class="section-title">' + (isFA ? "آزمون بر اساس حالت" : "Quiz by Mode") + '</h2>' +
+    '<div class="mode-grid">' +
+    '<button data-mode="grammar" class="mode-card" style="border-color:#4361ee">' +
+    '<div class="mode-icon" style="background:#4361ee15;color:#4361ee">📝</div>' +
+    '<div class="mode-info"><div class="mode-title">' + (isFA ? "آزمون گرامر" : "Grammar Quiz") + '</div>' +
+    '<div class="mode-meta">' + grammarQs.length + ' ' + (isFA ? "سوال" : "questions") + '</div></div></button>' +
 
-  // Quiz Mode Cards
-  html += '<h2 class="section-heading">' + (isFA ? "حالت‌های آزمون" : "Quiz Modes") + '</h2>';
-  html += '<div class="mode-grid">' +
-    '<div class="mode-card grammar" id="mode-grammar">' +
-    '<div class="mode-icon">📝</div><div class="mode-info">' +
-    '<div class="mode-title">' + (isFA ? "گرامر" : "Grammar") + '</div>' +
-    '<div class="mode-title-en">Grammar Quiz</div>' +
-    '<div class="mode-meta">' + grammarQs.length + ' ' + (isFA ? "سوال" : "questions") + '</div></div>' +
-    '<span class="mode-arrow">←</span></div>' +
+    '<button data-mode="vocabulary" class="mode-card" style="border-color:#e84393">' +
+    '<div class="mode-icon" style="background:#e8439315;color:#e84393">📚</div>' +
+    '<div class="mode-info"><div class="mode-title">' + (isFA ? "آزمون واژگان" : "Vocabulary Quiz") + '</div>' +
+    '<div class="mode-meta">' + vocabQs.length + ' ' + (isFA ? "سوال" : "questions") + '</div></div></button>' +
 
-    '<div class="mode-card vocabulary" id="mode-vocabulary">' +
-    '<div class="mode-icon">📚</div><div class="mode-info">' +
-    '<div class="mode-title">' + (isFA ? "واژگان" : "Vocabulary") + '</div>' +
-    '<div class="mode-title-en">Vocabulary Quiz</div>' +
-    '<div class="mode-meta">' + vocabQs.length + ' ' + (isFA ? "سوال" : "questions") + '</div></div>' +
-    '<span class="mode-arrow">←</span></div>' +
+    '<button id="btn-speaking-home" class="mode-card" style="border-color:#00b894">' +
+    '<div class="mode-icon" style="background:#00b89415;color:#00b894">🗣</div>' +
+    '<div class="mode-info"><div class="mode-title">' + (isFA ? "آمادگی صحبت" : "Speaking Prep") + '</div>' +
+    '<div class="mode-meta">' + prompts.length + ' ' + (isFA ? "پامپت" : "prompts") + ' · ' + state.promptsViewed + ' ' + (isFA ? "دیده شده" : "viewed") + '</div></div></button>' +
+    '</div></section>';
 
-    '<div class="mode-card speaking" id="mode-speaking">' +
-    '<div class="mode-icon">🗣</div><div class="mode-info">' +
-    '<div class="mode-title">' + (isFA ? "آمادگی صحبت" : "Speaking Prep") + '</div>' +
-    '<div class="mode-title-en">Speaking Practice</div>' +
-    '<div class="mode-meta">' + prompts.length + ' ' + (isFA ? "پامپت" : "prompts") + ' · ' + state.promptsViewed + ' ' + (isFA ? "دیده شده" : "viewed") + '</div></div>' +
-    '<span class="mode-arrow">←</span></div></div>';
-
-  // Grammar Categories
-  html += '<h2 class="section-heading">' + (isFA ? "دسته‌بندی گرامر" : "Grammar Categories") + '</h2>';
-  html += '<div class="category-grid">';
+  // Grammar Category Grid (like Life in the UK topic grid)
+  html += '<section class="section"><h2 class="section-title">' + (isFA ? "دسته‌بندی گرامر" : "Grammar Categories") + '</h2>' +
+    '<div class="topic-grid">';
   var gKeys = Object.keys(gInfo);
   for(var gi = 0; gi < gKeys.length; gi++){
     var gk = gKeys[gi];
     var gdata = gInfo[gk];
-    html += '<div class="cat-card" data-quiz="grammar" data-filter="' + gk + '">' +
-      '<div class="cat-icon" style="background:' + gdata.color + '22;color:' + gdata.color + '">📝</div>' +
-      '<div class="cat-info"><div class="cat-title">' + (isFA ? gdata.fa : gdata.en) + '</div>' +
-      '<div class="cat-title-en">' + gdata.en + '</div>' +
-      '<div class="cat-meta">' + (grammarCats[gk] || 0) + ' ' + (isFA ? "سوال" : "questions") + '</div></div></div>';
+    html += '<button data-quiz="grammar" data-filter="' + gk + '" class="topic-card topic-filter-btn" style="border-color:' + gdata.color + '">' +
+      '<div class="topic-name">' + (isFA ? gdata.fa : gdata.en) + '</div>' +
+      '<div class="topic-count">' + (grammarCats[gk] || 0) + ' ' + (isFA ? "سوال" : "qs") + '</div>' +
+      '</button>';
   }
-  html += '</div>';
+  html += '</div></section>';
 
-  // Vocab Topics
-  html += '<h2 class="section-heading">' + (isFA ? "موضوعات واژگان" : "Vocabulary Topics") + '</h2>';
-  html += '<div class="category-grid">';
+  // Vocab Topic Grid (like Life in the UK topic grid)
+  html += '<section class="section"><h2 class="section-title">' + (isFA ? "موضوعات واژگان" : "Vocabulary Topics") + '</h2>' +
+    '<div class="topic-grid">';
   var tKeys = Object.keys(tInfo);
   for(var ti = 0; ti < tKeys.length; ti++){
     var tk = tKeys[ti];
     var tdata = tInfo[tk];
-    html += '<div class="cat-card" data-quiz="vocabulary" data-filter="' + tk + '">' +
-      '<div class="cat-icon" style="background:' + tdata.color + '22;color:' + tdata.color + '">' + tdata.icon + '</div>' +
-      '<div class="cat-info"><div class="cat-title">' + (isFA ? tdata.fa : tdata.en) + '</div>' +
-      '<div class="cat-title-en">' + tdata.en + '</div>' +
-      '<div class="cat-meta">' + (vocabTopics[tk] || 0) + ' ' + (isFA ? "سوال" : "questions") + '</div></div></div>';
+    html += '<button data-quiz="vocabulary" data-filter="' + tk + '" class="topic-card topic-filter-btn" style="border-color:' + tdata.color + '">' +
+      '<div class="topic-name">' + (isFA ? tdata.fa : tdata.en) + '</div>' +
+      '<div class="topic-count">' + (vocabTopics[tk] || 0) + ' ' + (isFA ? "سوال" : "qs") + '</div>' +
+      '</button>';
   }
-  html += '</div>';
+  html += '</div></section>';
 
-  // History
+  // Difficulty Filter (like Life in the UK)
+  html += '<section class="section"><h2 class="section-title">' + (isFA ? "آزمون بر اساس سختی" : "Quiz by Difficulty") + '</h2>' +
+    '<div class="diff-grid">' +
+    '<button data-diff="easy" class="diff-card diff-btn" style="border-color:#00b894"><div>' + getDiffLabel("easy") + '</div></button>' +
+    '<button data-diff="medium" class="diff-card diff-btn" style="border-color:#fdcb6e"><div>' + getDiffLabel("medium") + '</div></button>' +
+    '<button data-diff="hard" class="diff-card diff-btn" style="border-color:#d63031"><div>' + getDiffLabel("hard") + '</div></button>' +
+    '</div></section>';
+
+  // Study Mode (like Life in the UK)
+  html += '<section class="section"><h2 class="section-title">' + (isFA ? "مطالعه آزاد" : "Study Mode") + '</h2>' +
+    '<div class="quick-start">' +
+    '<button id="btn-study" class="btn btn-secondary btn-large">' + (isFA ? "مشاهده همه سوالات و پاسخ‌ها" : "View All Questions and Answers") + '</button>' +
+    '</div></section>';
+
+  // History (like Life in the UK)
   if(state.history.length > 0){
-    html += '<h2 class="section-heading">' + (isFA ? "تاریخچه" : "History") + '</h2>';
-    html += '<div class="history-list">';
+    html += '<section class="section"><h2 class="section-title">' + (isFA ? "تاریخچه" : "History") + '</h2>' +
+      '<div class="history-list">';
     var show = Math.min(state.history.length, 10);
     for(var h = 0; h < show; h++){
       var item = state.history[h];
@@ -406,97 +375,162 @@ function renderHome(){
         '<div><div class="hist-pct">' + item.pct + '%</div>' +
         '<div class="hist-date">' + dateStr + '</div></div></div>';
     }
-    html += '</div>';
+    html += '</div></section>';
+  }
+
+  html += '<footer class="credit">' + (isFA ? "ساخته شده توسط نیما حکیم‌مانی" : "Crafted by Nima Hakimmaani") + '</footer>';
+  html += '</main>';
+  return html;
+}
+
+// ===== STUDY VIEW (Life in the UK pattern) =====
+function renderStudy(){
+  var isFA = state.lang === "fa";
+  var html = renderHeader();
+  html += '<div class="progress-wrapper"><div id="progress-bar" class="progress-bar"></div></div>';
+  html += '<main class="container">';
+  html += '<div class="study-header"><button id="btn-back-study" class="btn btn-secondary">' + (isFA ? "بازگشت" : "Back") + '</button></div>';
+
+  // Grammar questions
+  var grammarQs = getGrammarQuestions();
+  var gInfo = getGrammarInfo();
+  html += '<h2 class="section-title" style="margin-bottom:12px">' + (isFA ? "سوالات گرامر" : "Grammar Questions") + '</h2>';
+  var currentCat = "";
+  for(var i = 0; i < grammarQs.length; i++){
+    var q = grammarQs[i];
+    if(q.grammar !== currentCat){
+      currentCat = q.grammar;
+      var gi = gInfo[currentCat] || {};
+      html += '<div class="study-topic-divider" style="background:' + (gi.color || "#4361ee") + '">' +
+        '<span>' + (isFA ? (gi.fa || currentCat) : (gi.en || currentCat)) + '</span></div>';
+    }
+    html += renderStudyQuestion(q, i + 1);
+  }
+
+  // Vocabulary questions
+  var vocabQs = getVocabQuestions();
+  var tInfo = getTopicInfo();
+  html += '<h2 class="section-title" style="margin-top:24px;margin-bottom:12px">' + (isFA ? "سوالات واژگان" : "Vocabulary Questions") + '</h2>';
+  var currentTopic = "";
+  for(var j = 0; j < vocabQs.length; j++){
+    var vq = vocabQs[j];
+    if(vq.topic !== currentTopic){
+      currentTopic = vq.topic;
+      var ti = tInfo[currentTopic] || {};
+      html += '<div class="study-topic-divider" style="background:' + (ti.color || "#e84393") + '">' +
+        '<span>' + (isFA ? (ti.fa || currentTopic) : (ti.en || currentTopic)) + '</span></div>';
+    }
+    html += renderStudyQuestion(vq, grammarQs.length + j + 1);
   }
 
   html += '</main>';
   return html;
 }
 
-// ===== QUIZ VIEW =====
+function renderStudyQuestion(q, num){
+  var isFA = state.lang === "fa";
+  var html = '<div class="study-card">' +
+    '<div class="study-q-num">' + num + '</div>' +
+    '<div class="study-question">' + q[t("question")] + '</div>' +
+    '<div class="study-question-en en-text">' + q.questionEn + '</div>' +
+    '<div class="study-options">';
+  var optLabels = { a: "A", b: "B", c: "C", d: "D" };
+  for(var k = 0; k < q.options.length; k++){
+    var opt = q.options[k];
+    var isCorrect = opt.id === q.correctOption;
+    html += '<div class="study-option ' + (isCorrect ? "correct" : "") + '">' +
+      '<span class="opt-label">' + optLabels[opt.id] + '</span> ' +
+      '<span>' + opt[t("text")] + '</span>' +
+      (isFA ? '<span class="en-text" style="font-size:0.8em;color:#888;margin-right:6px"> ' + opt.textEn + '</span>' : '') +
+      '</div>';
+  }
+  html += '</div>' +
+    '<div class="study-explanation">' + q[t("explanation")] + '</div>' +
+    '</div>';
+  return html;
+}
+
+// ===== QUIZ VIEW (Life in the UK pattern) =====
 function renderQuiz(){
   var isFA = state.lang === "fa";
   var q = state.questions[state.currentIndex];
-  if(!q) return '<main class="view active"><p>' + (isFA ? "خطا" : "Error") + '</p></main>';
+  if(!q) return renderHeader() + '<main class="container"><p>' + (isFA ? "خطا" : "Error") + '</p></main>';
 
   var idx = state.currentIndex;
   var total = state.questions.length;
   var answered = state.answers[idx];
-  var isCorrect = answered && answered === q.correctOption;
+  var isCorrect = answered === q.correctOption;
 
-  var pctProgress = ((idx) / total) * 100;
-  var isPink = state.mode === "vocabulary";
+  var html = renderHeader();
+  html += '<div class="progress-wrapper"><div id="progress-bar" class="progress-bar"></div>' +
+    '<span id="progress-count" class="progress-count">' + (idx + 1) + '/' + total + '</span></div>';
 
-  var html = '<main class="view active">';
-  html += '<div class="back-btn" id="btn-back-quiz">→ ' + (isFA ? "بازگشت" : "Back") + '</div>';
-
-  // Progress
-  html += '<div class="quiz-progress">' +
-    '<div class="quiz-progress-bar"><div class="quiz-progress-fill' + (isPink ? ' pink' : '') + '" id="quiz-fill" style="width:' + pctProgress + '%"></div></div>' +
-    '<span class="quiz-progress-text">' + (idx + 1) + '/' + total + '</span></div>';
+  html += '<main class="container">' +
+    '<div class="quiz-card">' +
+    '<div class="quiz-meta">' +
+    '<span class="quiz-num">' + (isFA ? "سوال " : "Question ") + (idx + 1) + '</span>';
 
   // Mode label
   var modeLabel = state.mode === "grammar" ? (isFA ? "گرامر" : "Grammar") : (isFA ? "واژگان" : "Vocabulary");
-  var modeColor = isPink ? "#e84393" : "#4361ee";
+  var modeColor = state.mode === "grammar" ? "#4361ee" : "#e84393";
+  html += '<span class="quiz-topic" style="color:' + modeColor + '">' + modeLabel + '</span>';
 
-  // Question card
-  html += '<div class="quiz-question">';
-
-  // Meta tags
-  html += '<div class="quiz-q-meta">';
-  html += '<span class="quiz-q-tag" style="background:' + modeColor + '15;color:' + modeColor + '">' + modeLabel + '</span>';
-
+  // Category/topic badge
   if(state.mode === "grammar"){
     var gInfo = getGrammarInfo();
     var gi = gInfo[q.grammar];
-    if(gi) html += '<span class="quiz-q-tag" style="background:' + gi.color + '15;color:' + gi.color + '">' + (isFA ? gi.fa : gi.en) + '</span>';
+    if(gi) html += '<span class="quiz-topic" style="color:' + gi.color + '">' + (isFA ? gi.fa : gi.en) + '</span>';
   } else {
     var tInfo = getTopicInfo();
     var ti = tInfo[q.topic];
-    if(ti) html += '<span class="quiz-q-tag" style="background:' + ti.color + '15;color:' + ti.color + '">' + ti.icon + ' ' + (isFA ? ti.fa : ti.en) + '</span>';
+    if(ti) html += '<span class="quiz-topic" style="color:' + ti.color + '">' + (isFA ? ti.fa : ti.en) + '</span>';
   }
-  html += '<span class="quiz-q-tag" style="background:' + getDiffColor(q.difficulty) + '15;color:' + getDiffColor(q.difficulty) + '">' + getDiffLabel(q.difficulty) + '</span>';
+
+  // Difficulty badge
+  html += '<span class="quiz-diff" style="color:' + getDiffColor(q.difficulty) + '">' + getDiffLabel(q.difficulty) + '</span>';
   html += '</div>';
 
   // Question text
-  html += '<div class="quiz-q-text">' + q[t("question")] + '</div>';
-  html += '<div class="quiz-q-en en-text">' + q.questionEn + '</div>';
+  html += '<div class="quiz-question">' + q[t("question")] + '</div>' +
+    '<div class="quiz-question-en en-text">' + q.questionEn + '</div>';
 
-  // Options
+  // Options (Life in the UK quiz-option pattern)
   html += '<div class="quiz-options">';
   var optLabels = { a: "A", b: "B", c: "C", d: "D" };
   for(var i = 0; i < q.options.length; i++){
     var opt = q.options[i];
-    var cls = "quiz-opt";
+    var cls = "quiz-option";
     if(answered){
       if(opt.id === q.correctOption) cls += " correct";
       else if(opt.id === answered && !isCorrect) cls += " wrong";
     }
     html += '<button data-opt="' + opt.id + '" class="' + cls + '">' +
-      '<span class="quiz-opt-letter">' + optLabels[opt.id] + '</span>' +
-      '<span class="quiz-opt-text">' + opt[t("text")] +
+      '<span class="opt-label">' + optLabels[opt.id] + '</span>' +
+      '<span class="opt-text">' + opt[t("text")] +
       (state.lang === "fa" ? '<span class="en-text"> ' + opt.textEn + '</span>' : '') +
       '</span></button>';
   }
   html += '</div>';
 
-  // Explanation (after answer)
+  // Feedback (Life in the UK quiz-feedback pattern)
   if(answered){
-    html += '<div class="quiz-explanation visible">' +
-      '<strong>' + (isCorrect ? "✓ " + (isFA ? "آفرین! پاسخ درست است." : "Correct!") : "✗ " + (isFA ? "پاسخ اشتباه بود." : "Incorrect!")) + '</strong><br>' +
-      q[t("explanation")] +
-      '<div class="quiz-explanation-en en-text">' + q.explanationEn + '</div></div>';
+    html += '<div class="quiz-feedback">' +
+      '<div class="feedback-icon">' + (isCorrect ? "✓" : "✗") + '</div>' +
+      '<div class="feedback-text">' + (isCorrect ? (isFA ? "آفرین! پاسخ درست است." : "Correct!") : (isFA ? "پاسخ اشتباه بود." : "Incorrect!")) + '</div>' +
+      '<div class="feedback-explanation">' + q[t("explanation")] +
+      '<div class="feedback-explanation-en en-text">' + q.explanationEn + '</div></div>' +
+      '</div>';
   }
 
   html += '</div></main>';
   return html;
 }
 
-// ===== SPEAKING VIEW =====
+// ===== SPEAKING VIEW (styled consistently with Life in the UK header/progress pattern) =====
 function renderSpeaking(){
   var isFA = state.lang === "fa";
   var prompts = getSpeakingPrompts();
-  if(prompts.length === 0) return '<main class="view active"><p>' + (isFA ? "داده‌ای یافت نشد" : "No data") + '</p></main>';
+  if(prompts.length === 0) return renderHeader() + '<main class="container"><p>' + (isFA ? "داده‌ای یافت نشد" : "No data") + '</p></main>';
 
   var p = prompts[state.speakingIndex];
   if(!p) state.speakingIndex = 0;
@@ -508,13 +542,15 @@ function renderSpeaking(){
   var topicIcon = topicData.icon || "💬";
   var topicName = isFA ? (topicData.fa || p.topic) : (topicData.en || p.topic);
 
-  var html = '<main class="view active">';
-  html += '<div class="back-btn" id="btn-back-speaking">→ ' + (isFA ? "بازگشت" : "Back") + '</div>';
+  var html = renderHeader();
+  html += '<div class="progress-wrapper"><div id="progress-bar" class="progress-bar"></div></div>';
+
+  html += '<main class="container">';
 
   // Nav bar
   html += '<div class="speaking-nav">' +
     '<button class="speaking-nav-btn" id="sp-prev"' + (state.speakingIndex === 0 ? " disabled" : "") + '>' + (isFA ? "قبلی" : "Prev") + '</button>' +
-    '<span class="speaking-counter">' + (state.speakingIndex + 1) + ' / ' + prompts.length + '</span>' +
+    '<span class="speaking-counter">' + (state.speakingIndex + 1) + '/' + prompts.length + '</span>' +
     '<button class="speaking-nav-btn" id="sp-next"' + (state.speakingIndex === prompts.length - 1 ? " disabled" : "") + '>' + (isFA ? "بعدی" : "Next") + '</button></div>';
 
   // Prompt card
@@ -529,7 +565,7 @@ function renderSpeaking(){
     (isRevealed ? (isFA ? "✓ پاسخ نمونه نمایش داده شد" : "✓ Model answer shown") : (isFA ? "👁 نمایش پاسخ نمونه" : "👁 Show Model Answer")) + '</button>';
 
   // Model answer
-  html += '<div class="model-answer' + (isRevealed ? " visible" : '') + '" id="sp-answer">';
+  html += '<div class="model-answer' + (isRevealed ? " visible" : "") + '" id="sp-answer">';
   html += '<div class="model-answer-label">' + (isFA ? "پاسخ نمونه:" : "Model Answer:") + '</div>';
   html += '<div class="model-answer-text">' + p.modelAnswerEn + '</div>';
   html += '<div class="model-answer-text-fa">' + p.modelAnswerFa + '</div></div>';
@@ -555,30 +591,33 @@ function renderSpeaking(){
   return html;
 }
 
-// ===== GUIDE VIEW =====
+// ===== GUIDE VIEW (styled consistently) =====
 function renderGuide(){
   var isFA = state.lang === "fa";
   var guides = getTopicGuide();
 
-  var html = '<main class="view active">';
+  var html = renderHeader();
+  html += '<div class="progress-wrapper"><div id="progress-bar" class="progress-bar"></div></div>';
+  html += '<main class="container">';
+
   html += '<h2 class="section-title">' + (isFA ? "راهنمای آمادگی آزمون" : "Exam Preparation Guide") + '</h2>';
-  html += '<div class="section-title-en en-text">Trinity GESE Grade 5 Tips</div>';
-  html += '<div class="section-desc">' + (isFA ? "راهنمای کامل برای آمادگی آزمون B1 صحبت و شنیدار. هر بخش را باز کنید و نکات مهم را مطالعه کنید." : "Complete guide for B1 Speaking & Listening exam preparation. Open each section and study the key tips.") + '</div>';
+  html += '<div style="font-size:14px;color:#555;line-height:1.8;margin-bottom:20px">' +
+    (isFA ? "راهنمای کامل برای آمادگی آزمون B1 صحبت و شنیدار. هر بخش را باز کنید و نکات مهم را مطالعه کنید." : "Complete guide for B1 Speaking & Listening exam preparation. Open each section and study the key tips.") + '</div>';
 
   for(var i = 0; i < guides.length; i++){
     var g = guides[i];
     var isRead = state.guideRead.indexOf(i) !== -1;
-    var isOpen = isRead; // auto-open read sections
+    var isOpen = isRead;
 
-    html += '<div class="guide-card' + (isOpen ? ' open' : '') + '" id="guide-card-' + i + '">';
-    html += '<button class="guide-header' + (isOpen ? ' open' : '') + '" id="guide-hdr-' + i + '" data-guide="' + i + '">' +
+    html += '<div class="guide-card' + (isOpen ? " open" : "") + '" id="guide-card-' + i + '">';
+    html += '<button class="guide-header' + (isOpen ? " open" : "") + '" id="guide-hdr-' + i + '" data-guide="' + i + '">' +
       '<span class="guide-icon">📖</span>' +
       '<div class="guide-info"><div class="guide-name">' + g[t("title")] + '</div>' +
       '<div class="guide-name-en">' + g.titleEn + '</div></div>' +
       (isRead ? '<span class="guide-read-badge">✓</span>' : '') +
       '<span class="guide-arrow">▼</span></button></div>';
 
-    html += '<div class="guide-body' + (isOpen ? ' open' : '') + '" id="guide-body-' + i + '">';
+    html += '<div class="guide-body' + (isOpen ? " open" : "") + '" id="guide-body-' + i + '">';
     html += '<div class="guide-desc">' + g[t("desc")] + '</div>';
     html += '<div class="guide-desc-en en-text">' + g.descEn + '</div>';
     html += '<ul class="guide-tips-list">';
@@ -587,7 +626,7 @@ function renderGuide(){
       html += '<li class="en-text">💡 ' + tipsArr[j] + '</li>';
     }
     html += '</ul>';
-    html += '<button class="guide-mark-btn' + (isRead ? ' done' : '') + '" id="guide-mark-' + i + '" data-guide="' + i + '">' +
+    html += '<button class="guide-mark-btn' + (isRead ? " done" : "") + '" id="guide-mark-' + i + '" data-guide="' + i + '">' +
       (isRead ? (isFA ? "✓ خوانده شد" : "✓ Read") : (isFA ? "علامت‌گذاری به عنوان خوانده شده" : "Mark as Read")) + '</button>';
     html += '</div>';
   }
@@ -596,114 +635,101 @@ function renderGuide(){
   return html;
 }
 
-// ===== RESULTS VIEW =====
+// ===== RESULTS VIEW (Life in the UK pattern) =====
 function renderResults(){
   var isFA = state.lang === "fa";
   var pct = Math.round((state.score / state.questions.length) * 100);
   var passed = pct >= PASS_MARK;
-  var modeLabel = state.mode === "grammar" ? (isFA ? "گرامر" : "Grammar") : (isFA ? "واژگان" : "Vocabulary");
 
-  var html = '<main class="view active">';
+  var html = renderHeader();
+  html += '<div class="progress-wrapper"><div id="progress-bar" class="progress-bar"></div></div>';
+  html += '<main class="container">';
 
-  html += '<div class="results-card ' + (passed ? 'passed' : 'failed') + '">' +
-    '<div class="results-icon">' + (passed ? "🎉" : "💪") + '</div>' +
+  html += '<div class="results-card ' + (passed ? "passed" : "failed") + '">' +
+    '<div class="results-icon">' + (passed ? "🎉" : "😔") + '</div>' +
     '<div class="results-title">' + (passed ? (isFA ? "تبریک! قبول شدید" : "Congratulations! Passed") : (isFA ? "متأسفانه قبول نشدید" : "Unfortunately, Failed")) + '</div>' +
-    '<div class="results-sub" style="font-size:14px;color:#888;margin-top:4px;">' + modeLabel + '</div>' +
-    '<div class="results-score">' +
-    '<span class="score-big">' + state.score + '</span>' +
-    '<span class="score-sep">/</span>' +
-    '<span class="score-total">' + state.questions.length + '</span></div>' +
+    '<div class="results-score"><span class="score-big">' + state.score + '</span><span class="score-sep">/</span><span>' + state.questions.length + '</span></div>' +
     '<div class="results-pct">' + pct + '%</div>' +
-    '<div class="results-bar"><div class="results-bar-fill" style="width:' + pct + '%;background:' + (passed ? '#22c55e' : '#ef4444') + '"></div></div>' +
-    '<div class="results-pass-mark">' + (isFA ? "نمره قبولی: " + PASS_MARK + "%" : "Pass mark: " + PASS_MARK + "%") + '</div></div>';
+    '<div class="results-bar"><div class="results-bar-fill" style="width:' + pct + '%;background:' + (passed ? "#00b894" : "#d63031") + '"></div></div>' +
+    '<div class="results-pass-mark">' + (isFA ? "نمره قبولی: " + PASS_MARK + "%" : "Pass mark: " + PASS_MARK + "%") + '</div>' +
+    '</div>';
 
-  // Actions
   html += '<div class="results-actions">' +
-    '<button class="results-btn results-btn-primary" id="btn-retry">' + (isFA ? "تلاش مجدد" : "Try Again") + '</button>' +
-    '<button class="results-btn results-btn-secondary" id="btn-home-results">' + (isFA ? "صفحه اصلی" : "Home") + '</button></div>';
+    '<button id="btn-retry" class="btn btn-primary btn-large">' + (isFA ? "تلاش مجدد" : "Try Again") + '</button>' +
+    '<button id="btn-home-results" class="btn btn-secondary btn-large">' + (isFA ? "صفحه اصلی" : "Home") + '</button>' +
+    '</div>';
 
-  // Summary grid
+  // Answer Summary
   html += '<div class="answer-summary">';
   for(var i = 0; i < state.questions.length; i++){
     var q = state.questions[i];
     var ans = state.answers[i];
     var correct = ans === q.correctOption;
-    html += '<div class="summary-item ' + (correct ? 'correct' : 'wrong') + '" title="Q' + (i + 1) + ': ' + (correct ? '✓' : '✗') + '">' + (i + 1) + '</div>';
+    html += '<div class="summary-item ' + (correct ? "correct" : "wrong") + '">' +
+      '<span class="sum-num">' + (i + 1) + '</span>' +
+      '<span class="sum-icon">' + (correct ? "✓" : "✗") + '</span>' +
+      '</div>';
   }
   html += '</div>';
-
-  // Stats
-  html += '<div class="stats-row">' +
-    '<div class="stat-card"><span class="stat-num">' + state.totalAttempts + '</span><span class="stat-label">' + (isFA ? "کل تلاش" : "Total") + '</span></div>' +
-    '<div class="stat-card"><span class="stat-num">' + state.bestScore + '</span><span class="stat-label">' + (isFA ? "بهترین نمره" : "Best Score") + '</span></div>' +
-    '<div class="stat-card"><span class="stat-num">' + state.passed + '</span><span class="stat-label">' + (isFA ? "قبولی" : "Passed") + '</span></div>' +
-    '<div class="stat-card pink"><span class="stat-num">' + (state.totalAttempts > 0 ? Math.round((state.passed / state.totalAttempts) * 100) : 0) + '%</span><span class="stat-label">' + (isFA ? "نرخ قبولی" : "Pass Rate") + '</span></div></div>';
 
   html += '</main>';
   return html;
 }
 
-// ===== BIND EVENTS =====
+// ===== EVENTS (Life in the UK pattern) =====
 function bindEvents(){
   var el = function(id){ return document.getElementById(id); };
 
-  // Brand/home
-  var bh = el("brand-home");
+  // Back arrow (home button)
+  var bh = el("btn-home");
   if(bh) bh.onclick = function(){ state.view = "home"; render(); };
 
-  // Lang
-  var lf = el("lang-fa");
-  if(lf) lf.onclick = function(){ if(state.lang !== "fa"){ state.lang = "fa"; save(); render(); } };
-  var le = el("lang-en");
-  if(le) le.onclick = function(){ if(state.lang !== "en"){ state.lang = "en"; save(); render(); } };
+  // Lang toggle
+  var bl = el("btn-lang");
+  if(bl) bl.onclick = toggleLang;
 
-  // Bottom nav
-  var navBtns = document.querySelectorAll("[data-nav]");
-  for(var n = 0; n < navBtns.length; n++){
-    navBtns[n].onclick = function(){
-      var v = this.getAttribute("data-nav");
-      if(v === "speaking") startSpeaking();
-      else if(v === "quiz"){ state.view = "home"; render(); } // go home to pick mode
-      else nav(v);
-    };
-  }
+  // Quick start quiz
+  var bq = el("btn-quiz-all");
+  if(bq) bq.onclick = function(){ startQuiz("grammar", null, null); };
 
-  // Quick actions
-  var qag = el("qa-random-grammar");
-  if(qag) qag.onclick = function(){ startQuiz("grammar", null); };
-  var qav = el("qa-random-vocab");
-  if(qav) qav.onclick = function(){ startQuiz("vocabulary", null); };
-  var qas = el("qa-speaking");
-  if(qas) qas.onclick = function(){ startSpeaking(); };
+  // Study mode
+  var bs = el("btn-study");
+  if(bs) bs.onclick = function(){ state.view = "study"; render(); };
 
-  // Mode cards
-  var mg = el("mode-grammar");
-  if(mg) mg.onclick = function(){ startQuiz("grammar", null); };
-  var mv = el("mode-vocabulary");
-  if(mv) mv.onclick = function(){ startQuiz("vocabulary", null); };
-  var ms = el("mode-speaking");
-  if(ms) ms.onclick = function(){ startSpeaking(); };
-
-  // Category cards (quiz filter)
-  var catCards = document.querySelectorAll("[data-quiz]");
-  for(var c = 0; c < catCards.length; c++){
-    catCards[c].onclick = function(){
-      var mode = this.getAttribute("data-quiz");
-      var filter = this.getAttribute("data-filter");
-      startQuiz(mode, filter);
-    };
-  }
-
-  // Back buttons
-  var bbq = el("btn-back-quiz");
-  if(bbq) bbq.onclick = function(){ state.view = "home"; render(); };
-  var bbs = el("btn-back-speaking");
+  // Back from study
+  var bbs = el("btn-back-study");
   if(bbs) bbs.onclick = function(){ state.view = "home"; render(); };
 
+  // Speaking from home
+  var bsp = el("btn-speaking-home");
+  if(bsp) bsp.onclick = function(){ startSpeaking(); };
+
+  // Mode cards
+  var modeBtns = document.querySelectorAll("[data-mode]");
+  for(var m = 0; m < modeBtns.length; m++){
+    modeBtns[m].onclick = function(){ startQuiz(this.dataset.mode, null, null); };
+  }
+
+  // Topic filter buttons (grammar + vocab)
+  var tBtns = document.querySelectorAll(".topic-filter-btn");
+  for(var i = 0; i < tBtns.length; i++){
+    tBtns[i].onclick = function(){
+      var mode = this.dataset.quiz;
+      var filter = this.dataset.filter;
+      startQuiz(mode, filter, null);
+    };
+  }
+
+  // Difficulty buttons
+  var dBtns = document.querySelectorAll(".diff-btn");
+  for(var j = 0; j < dBtns.length; j++){
+    dBtns[j].onclick = function(){ startQuiz("grammar", null, this.dataset.diff); };
+  }
+
   // Quiz options
-  var qOpts = document.querySelectorAll(".quiz-opt");
-  for(var q = 0; q < qOpts.length; q++){
-    qOpts[q].onclick = function(){ handleAnswer(this.getAttribute("data-opt")); };
+  var qOpts = document.querySelectorAll(".quiz-option");
+  for(var k = 0; k < qOpts.length; k++){
+    qOpts[k].onclick = function(){ handleAnswer(this.dataset.opt); };
   }
 
   // Speaking nav
@@ -712,31 +738,19 @@ function bindEvents(){
   var spNext = el("sp-next");
   if(spNext) spNext.onclick = function(){ navigateSpeaking(1); };
   var spReveal = el("sp-reveal");
-  if(spReveal) spReveal.onclick = function(){
-    markPromptViewed(state.speakingIndex);
-    render();
-  };
+  if(spReveal) spReveal.onclick = function(){ markPromptViewed(state.speakingIndex); render(); };
 
   // Guide sections
   var guideHeaders = document.querySelectorAll("[data-guide]");
   for(var g = 0; g < guideHeaders.length; g++){
-    guideHeaders[g].onclick = function(){
-      toggleGuideSection(parseInt(this.getAttribute("data-guide")));
-    };
+    guideHeaders[g].onclick = function(){ toggleGuideSection(parseInt(this.dataset.guide)); };
   }
 
-  // Results buttons
+  // Results
   var retry = el("btn-retry");
-  if(retry) retry.onclick = function(){ startQuiz(state.mode, state.filter); };
+  if(retry) retry.onclick = function(){ startQuiz(state.mode, state.filter, state.difficultyFilter); };
   var homeR = el("btn-home-results");
   if(homeR) homeR.onclick = function(){ state.view = "home"; render(); };
-
-  // Update progress bar
-  var fill = el("quiz-fill");
-  if(fill){
-    var pct = (state.currentIndex / state.questions.length) * 100;
-    fill.style.width = pct + "%";
-  }
 }
 
 // ===== INIT =====
