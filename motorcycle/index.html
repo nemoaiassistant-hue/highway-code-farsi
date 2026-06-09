@@ -140,30 +140,29 @@
       <span class="bottom-nav-label">کتاب</span>
     </button>
     <button class="bottom-nav-item" id="navSigns" data-target="signs">
-      <span class="bottom-nav-icon">🪧</span>
+      <span class="bottom-nav-icon">🚦</span>
       <span class="bottom-nav-label">علائم</span>
     </button>
     <button class="bottom-nav-item" id="navQuiz" data-target="quiz">
-      <span class="bottom-nav-icon">📝</span>
+      <span class="bottom-nav-icon">✏️</span>
       <span class="bottom-nav-label">آزمون</span>
     </button>
-    <button class="bottom-nav-item" id="navHazard" data-target="hazard">
-      <span class="bottom-nav-icon">⚠️</span>
-      <span class="bottom-nav-label">خطرات</span>
-    </button>
-    <button class="bottom-nav-item" id="navFlashcards" data-target="flashcards">
-      <span class="bottom-nav-icon">🔄</span>
-      <span class="bottom-nav-label">فلش‌کارت</span>
-    </button>
-    <button class="bottom-nav-item" id="navShowMe" data-target="showme">
-      <span class="bottom-nav-icon">🔧</span>
-      <span class="bottom-nav-label">نمایش/توضیح</span>
-    </button>
-    <button class="bottom-nav-item" id="navProgress" data-target="progress">
-      <span class="bottom-nav-icon">📊</span>
-      <span class="bottom-nav-label">پیشرفت</span>
+    <button class="bottom-nav-item" id="navMore" onclick="toggleMoreMenu(event)">
+      <span class="bottom-nav-icon">⋯</span>
+      <span class="bottom-nav-label">بیشتر</span>
     </button>
   </nav>
+
+  <!-- More Menu Popup -->
+  <div class="more-menu" id="moreMenu">
+    <div class="more-menu-backdrop" onclick="closeMoreMenu()"></div>
+    <div class="more-menu-sheet">
+      <button class="more-menu-item" data-target="hazard" onclick="navFromMore('hazard')">⚠️ خطرات / Hazards</button>
+      <button class="more-menu-item" data-target="flashcards" onclick="navFromMore('flashcards')">🔄 فلش‌کارت / Flashcards</button>
+      <button class="more-menu-item" data-target="showme" onclick="navFromMore('showme')">🔧 نمایش/توضیح / Show-Tell</button>
+      <button class="more-menu-item" data-target="progress" onclick="navFromMore('progress')">📊 پیشرفت / Progress</button>
+    </div>
+  </div>
 
   <script src="assets/js/data.js"></script>
   <script src="assets/js/signs.js"></script>
