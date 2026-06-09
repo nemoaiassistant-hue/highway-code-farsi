@@ -1,4 +1,4 @@
-const CACHE_NAME = 'uk-theory-test-v1';
+const CACHE_NAME = 'uk-theory-test-v2';
 const ASSETS = [
   '/',
   '/car/',
@@ -7,19 +7,19 @@ const ASSETS = [
   '/manifest.json',
   '/assets/icon.svg',
   '/assets/css/landing.css',
-  '/assets/css/main.css',
-  '/car/assets/css/main.css',
-  '/motorcycle/assets/css/main.css',
-  '/lorry/assets/css/main.css',
-  '/car/assets/js/app.js',
-  '/car/assets/js/data.js',
-  '/car/assets/js/signs-v2.js',
-  '/motorcycle/assets/js/app.js',
-  '/motorcycle/assets/js/data.js',
-  '/motorcycle/assets/js/signs.js',
-  '/lorry/assets/js/app.js',
-  '/lorry/assets/js/data.js',
-  '/lorry/assets/js/signs.js',
+  '/assets/css/main-v9.css',
+  '/car/assets/css/main-v9.css',
+  '/motorcycle/assets/css/main-v9.css',
+  '/lorry/assets/css/main-v9.css',
+  '/car/assets/js/app-v14.js',
+  '/car/assets/js/data-v2.js',
+  '/car/assets/js/signs-v3.js',
+  '/motorcycle/assets/js/app-v14.js',
+  '/motorcycle/assets/js/data-v2.js',
+  '/motorcycle/assets/js/signs-v3.js',
+  '/lorry/assets/js/app-v14.js',
+  '/lorry/assets/js/data-v2.js',
+  '/lorry/assets/js/signs-v3.js',
 ];
 
 // Install — cache core assets
