@@ -40,7 +40,7 @@ body {
 .lang-toggle:hover { background: rgba(248,247,244,.2); }
 
 /* ===== VIEWS ===== */
-.view { display: none; max-width: 600px; margin: 0 auto; padding: 0 20px 40px; }
+.view { display: none; max-width: 600px; margin: 0 auto; padding: 0 20px 100px; }
 .view.active { display: block; }
 
 /* ===== HERO ===== */
