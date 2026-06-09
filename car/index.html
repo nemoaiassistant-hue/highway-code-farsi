@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>کد بزرگراه بریتانیا — Highway Code</title>
+  <meta name="description" content="Learn the UK Highway Code in Farsi with English translations. Study for your theory test." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main-v8.css?v=2" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon">🇬🇧</span>
+        <div class="brand-text">
+          <span class="brand-fa">کد بزرگراه</span>
+          <span class="brand-en">Highway Code</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="progress-pill" id="progressPill">
+          <span id="progressText">0%</span>
+        </div>
+        <div class="lang-flags">
+          <span class="lang-flag-btn active" id="langFa" title="فارسی">🇮🇷</span>
+          <span class="lang-flag-btn" id="langEn" title="English">🇬🇧</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- HOME VIEW -->
+    <div class="view active" id="homeView">
+      <div class="hero">
+        <h1 class="hero-title">کد بزرگراه بریتانیا</h1>
+        <p class="hero-sub">یادگیری قوانین رانندگی بریتانیا به فارسی</p>
+        <p class="hero-sub-en">Learn the UK driving rules in Farsi</p>
+      </div>
+
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="جستجو... / Search..." />
+        <span class="search-icon">🔍</span>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-num" id="sectionsCompleted">0</span>
+          <span class="stat-label">بخش‌های مطالعه شده</span>
+          <span class="stat-label-en">Sections studied</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="quizScore">—</span>
+          <span class="stat-label">آخرین امتیاز</span>
+          <span class="stat-label-en">Last quiz score</span>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div id="quickActions"></div>
+
+      <h2 class="section-heading" id="catHeading">دسته‌بندی‌ها</h2>
+      <div class="category-grid" id="categoryGrid">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="cta-section">
+        <p>📖 مطالعه کامل تمام ۱۵ بخش + ۴۷ آزمون</p>
+        <p class="cta-sub">Full book mode with all 15 sections + 47 quizzes</p>
+      </div>
+    </div>
+
+    <!-- SECTION VIEW -->
+    <div class="view" id="sectionView">
+      <button class="back-btn" id="backBtn">← بازگشت / Back</button>
+      <div class="section-content" id="sectionContent">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <div class="view" id="quizView">
+      <button class="back-btn" id="quizBackBtn">← بازگشت / Back</button>
+      <div class="quiz-container" id="quizContainer">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- FLASHCARD VIEW -->
+    <div class="view" id="flashcardsView">
+      <div class="flashcard-container" id="flashcardContainer">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- PROGRESS VIEW -->
+    <div class="view" id="progressView">
+      <div class="progress-container" id="progressContainer">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- FULL READ VIEW -->
+    <div class="view" id="readView">
+      <div class="read-container" id="readContainer">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Tab Navigation -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item active" id="navHome" data-target="home">
+      <span class="bottom-nav-icon">🏠</span>
+      <span class="bottom-nav-label">خانه</span>
+    </button>
+    <button class="bottom-nav-item" id="navRead" data-target="read">
+      <span class="bottom-nav-icon">📖</span>
+      <span class="bottom-nav-label">کتاب</span>
+    </button>
+    <button class="bottom-nav-item" id="navFlashcards" data-target="flashcards">
+      <span class="bottom-nav-icon">🔄</span>
+      <span class="bottom-nav-label">فلش‌کارت</span>
+    </button>
+    <button class="bottom-nav-item" id="navProgress" data-target="progress">
+      <span class="bottom-nav-icon">📊</span>
+      <span class="bottom-nav-label">پیشرفت</span>
+    </button>
+  </nav>
+
+  <script src="assets/js/data.js?v=2"></script>
+  <script src="assets/js/signs-v2.js?v=2"></script>
+  <script src="assets/js/app-v13.js"></script>
+</body>
+</html>

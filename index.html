@@ -3,136 +3,316 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>کد بزرگراه بریتانیا — Highway Code</title>
-  <meta name="description" content="Learn the UK Highway Code in Farsi with English translations. Study for your theory test." />
+  <title>آزمون تئوری رانندگی بریتانیا — UK Theory Test</title>
+  <meta name="description" content="آمادگی آزمون تئوری رانندگی بریتانیا به فارسی و انگلیسی. خودرو، موتورسیکلت، کامیون." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/main-v8.css?v=2" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      background: #f8f7f4;
+      color: #1a1a2e;
+      direction: rtl;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+    .hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      color: #fff;
+      padding: 48px 24px 40px;
+      text-align: center;
+      direction: rtl;
+    }
+    .hero-icon { font-size: 56px; margin-bottom: 16px; }
+    .hero h1 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      line-height: 1.4;
+    }
+    .hero h1 span { display: block; font-size: 16px; font-weight: 400; opacity: 0.8; margin-top: 4px; }
+    .hero p {
+      font-size: 15px;
+      opacity: 0.85;
+      max-width: 500px;
+      margin: 12px auto 0;
+      line-height: 1.7;
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat .num { font-size: 24px; font-weight: 700; color: #4361ee; }
+    .hero-stat .label { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    .section-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+      direction: ltr;
+    }
+    .course-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 16px;
+      border: 1px solid #eee;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      color: inherit;
+      direction: rtl;
+    }
+    .course-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      border-color: #4361ee;
+    }
+    .course-card:active { transform: translateY(0); }
+    .course-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .course-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .course-info h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .course-info h2 span {
+      display: block;
+      font-size: 13px;
+      font-weight: 400;
+      color: #888;
+    }
+    .course-desc {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #555;
+      margin-bottom: 16px;
+    }
+    .course-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .course-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: #f0f0f0;
+      color: #555;
+    }
+    .course-badge.live { background: #dcfce7; color: #166534; }
+    .course-badge.soon { background: #fef3c7; color: #92400e; }
+    .course-badge.popular { background: #dbeafe; color: #1e40af; }
+    .course-cta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      background: #4361ee;
+    }
+    .course-card.disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .course-card.disabled .course-cta {
+      background: #ccc;
+      color: #999;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    .feature {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      border: 1px solid #eee;
+    }
+    .feature-icon { font-size: 24px; margin-bottom: 8px; }
+    .feature h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .feature h3 span { display: block; font-size: 11px; font-weight: 400; color: #888; }
+    .feature p { font-size: 11px; color: #555; line-height: 1.5; margin-top: 6px; }
+    .footer {
+      text-align: center;
+      padding: 32px 16px 24px;
+      font-size: 12px;
+      color: #999;
+    }
+    .footer a { color: #4361ee; text-decoration: none; }
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #888;
+      text-decoration: none;
+      margin-bottom: 16px;
+    }
+    .back-link:hover { color: #4361ee; }
+
+    @media (max-width: 400px) {
+      .hero h1 { font-size: 24px; }
+      .course-icon { width: 48px; height: 48px; font-size: 24px; }
+      .features { grid-template-columns: 1fr; }
+      .hero-stats { gap: 16px; }
+    }
+  </style>
 </head>
 <body>
-  <header class="app-header">
-    <div class="header-inner">
-      <div class="brand">
-        <span class="brand-icon">🇬🇧</span>
-        <div class="brand-text">
-          <span class="brand-fa">کد بزرگراه</span>
-          <span class="brand-en">Highway Code</span>
-        </div>
-      </div>
-      <div class="header-actions">
-        <div class="progress-pill" id="progressPill">
-          <span id="progressText">0%</span>
-        </div>
-        <div class="lang-flags">
-          <span class="lang-flag-btn active" id="langFa" title="فارسی">🇮🇷</span>
-          <span class="lang-flag-btn" id="langEn" title="English">🇬🇧</span>
-        </div>
-      </div>
-    </div>
-  </header>
 
-  <main id="app">
-    <!-- HOME VIEW -->
-    <div class="view active" id="homeView">
-      <div class="hero">
-        <h1 class="hero-title">کد بزرگراه بریتانیا</h1>
-        <p class="hero-sub">یادگیری قوانین رانندگی بریتانیا به فارسی</p>
-        <p class="hero-sub-en">Learn the UK driving rules in Farsi</p>
-      </div>
+<div class="hero">
+  <div class="hero-icon">🇬🇧</div>
+  <h1>
+    آزمون تئوری بریتانیا
+    <span>UK Theory Test Prep</span>
+  </h1>
+  <p>آمادگی آزمون تئوری رانندگی بریتانیا به زبان فارسی و انگلیسی. مطالعه، فلشکارت، آزمون و پیشرفت.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="num">3</div><div class="label">دوره / Courses</div></div>
+    <div class="hero-stat"><div class="num">400+</div><div class="label">قانون / Rules</div></div>
+    <div class="hero-stat"><div class="num">150+</div><div class="label">آزمون / Quizzes</div></div>
+  </div>
+</div>
 
-      <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="جستجو... / Search..." />
-        <span class="search-icon">🔍</span>
-      </div>
+<div class="container">
 
-      <div class="stats-row">
-        <div class="stat-card">
-          <span class="stat-num" id="sectionsCompleted">0</span>
-          <span class="stat-label">بخش‌های مطالعه شده</span>
-          <span class="stat-label-en">Sections studied</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-num" id="quizScore">—</span>
-          <span class="stat-label">آخرین امتیاز</span>
-          <span class="stat-label-en">Last quiz score</span>
-        </div>
-      </div>
+  <div class="section-label">دوره‌ها / Courses</div>
 
-      <!-- Quick Actions -->
-      <div id="quickActions"></div>
-
-      <h2 class="section-heading" id="catHeading">دسته‌بندی‌ها</h2>
-      <div class="category-grid" id="categoryGrid">
-        <!-- Filled by JS -->
-      </div>
-
-      <div class="cta-section">
-        <p>📖 مطالعه کامل تمام ۱۵ بخش + ۴۷ آزمون</p>
-        <p class="cta-sub">Full book mode with all 15 sections + 47 quizzes</p>
+  <!-- CAR -->
+  <a href="car/" class="course-card">
+    <div class="course-header">
+      <div class="course-icon" style="background:#dbeafe;color:#1e40af">🚗</div>
+      <div class="course-info">
+        <h2>خودرو / Car Theory <span>Car / Light Vehicle</span></h2>
       </div>
     </div>
+    <div class="course-desc">
+      کد بزرگراه بریتانیا کامل — ۱۵ بخش، ۱۵۴ قانون، ۴۷ آزمون. شامل علائم راهنمایی رسمی، فلشکارت، و حالت صوتی.
+    </div>
+    <div class="course-meta">
+      <span class="course-badge live">✅ فعال</span>
+      <span class="course-badge popular">⭐ محبوب‌ترین</span>
+      <span class="course-badge">۱۵ بخش · ۱۵۴ قانون</span>
+    </div>
+    <div class="course-cta">شروع مطالعه / Start Learning →</div>
+  </a>
 
-    <!-- SECTION VIEW -->
-    <div class="view" id="sectionView">
-      <button class="back-btn" id="backBtn">← بازگشت / Back</button>
-      <div class="section-content" id="sectionContent">
-        <!-- Filled by JS -->
+  <!-- MOTORCYCLE -->
+  <a href="motorcycle/" class="course-card">
+    <div class="course-header">
+      <div class="course-icon" style="background:#fef3c7;color:#92400e">🏍️</div>
+      <div class="course-info">
+        <h2>موتورسیکلت / Motorcycle <span>Motorcycle / Moped</span></h2>
       </div>
     </div>
+    <div class="course-desc">
+      قوانین ویژه موتورسیکلت — تجهیزات ایمنی، کنترل، چهارراه‌ها، بزرگراه‌ها، آبوهوا و سوارکاری ایمن.
+    </div>
+    <div class="course-meta">
+      <span class="course-badge live">✅ فعال</span>
+      <span class="course-badge">۱۲ بخش · آزمون</span>
+    </div>
+    <div class="course-cta" style="background:#f59e0b">شروع مطالعه / Start Learning →</div>
+  </a>
 
-    <!-- QUIZ VIEW -->
-    <div class="view" id="quizView">
-      <button class="back-btn" id="quizBackBtn">← بازگشت / Back</button>
-      <div class="quiz-container" id="quizContainer">
-        <!-- Filled by JS -->
+  <!-- LORRY -->
+  <a href="lorry/" class="course-card">
+    <div class="course-header">
+      <div class="course-icon" style="background:#fce7f3;color:#9d174d">🚛</div>
+      <div class="course-info">
+        <h2>کامیون و اتوبوس / LGV & PCV <span>Lorry / Bus / HGV</span></h2>
       </div>
     </div>
-
-    <!-- FLASHCARD VIEW -->
-    <div class="view" id="flashcardsView">
-      <div class="flashcard-container" id="flashcardContainer">
-        <!-- Filled by JS -->
-      </div>
+    <div class="course-desc">
+      قوانین حرفه‌ای رانندگان سنگین — بارگیری، ساعات رانندگی، تاکوگراف، محدودیت وزن و ایمنی.
     </div>
-
-    <!-- PROGRESS VIEW -->
-    <div class="view" id="progressView">
-      <div class="progress-container" id="progressContainer">
-        <!-- Filled by JS -->
-      </div>
+    <div class="course-meta">
+      <span class="course-badge live">✅ فعال</span>
+      <span class="course-badge">۱۲ بخش · آزمون</span>
     </div>
+    <div class="course-cta" style="background:#ec4899">شروع مطالعه / Start Learning →</div>
+  </a>
 
-    <!-- FULL READ VIEW -->
-    <div class="view" id="readView">
-      <div class="read-container" id="readContainer">
-        <!-- Filled by JS -->
-      </div>
+  <div class="section-label" style="margin-top:32px">ویژگی‌ها / Features</div>
+
+  <div class="features">
+    <div class="feature">
+      <div class="feature-icon">📖</div>
+      <h3>مطالعه کامل <span>Full Study</span></h3>
+      <p>هر بخش با متن فارسی و انگلیسی</p>
     </div>
-  </main>
+    <div class="feature">
+      <div class="feature-icon">🪧</div>
+      <h3>علائم راهنمایی <span>Road Signs</span></h3>
+      <p>تصاویر رسمی تابلوها</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔄</div>
+      <h3>فلشکارت <span>Flashcards</span></h3>
+      <p>مرور سریع و بازیابی اطلاعات</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📝</div>
+      <h3>آزمون <span>Quizzes</span></h3>
+      <p>آزمون کوتاه در هر بخش</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">📊</div>
+      <h3>پیشرفت <span>Progress</span></h3>
+      <p>پیگیری بخش‌های مطالعه شده</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🌐</div>
+      <h3>دوزبانه <span>Bilingual</span></h3>
+      <p>فارسی و انگلیسی در هر صفحه</p>
+    </div>
+  </div>
 
-  <!-- Bottom Tab Navigation -->
-  <nav class="bottom-nav" id="bottomNav">
-    <button class="bottom-nav-item active" id="navHome" data-target="home">
-      <span class="bottom-nav-icon">🏠</span>
-      <span class="bottom-nav-label">خانه</span>
-    </button>
-    <button class="bottom-nav-item" id="navRead" data-target="read">
-      <span class="bottom-nav-icon">📖</span>
-      <span class="bottom-nav-label">کتاب</span>
-    </button>
-    <button class="bottom-nav-item" id="navFlashcards" data-target="flashcards">
-      <span class="bottom-nav-icon">🔄</span>
-      <span class="bottom-nav-label">فلش‌کارت</span>
-    </button>
-    <button class="bottom-nav-item" id="navProgress" data-target="progress">
-      <span class="bottom-nav-icon">📊</span>
-      <span class="bottom-nav-label">پیشرفت</span>
-    </button>
-  </nav>
+</div>
 
-  <script src="assets/js/data.js?v=2"></script>
-  <script src="assets/js/signs-v2.js?v=2"></script>
-  <script src="assets/js/app-v13.js"></script>
+<div class="footer">
+  <p>🇬🇧 British Theory Test Prep — فارسی و English</p>
+</div>
+
 </body>
 </html>
