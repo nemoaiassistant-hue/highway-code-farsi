@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="64" fill="#4361ee"/>
+  <path d="M256 80 L440 200 L440 380 L72 380 L72 200 Z" fill="#fff" stroke="#1a1a2e" stroke-width="8"/>
+  <circle cx="256" cy="240" r="60" fill="#dc2626" stroke="#1a1a2e" stroke-width="4"/>
+  <line x1="256" y1="180" x2="256" y2="300" stroke="#fff" stroke-width="12" stroke-linecap="round"/>
+  <rect x="180" y="320" width="152" height="30" rx="4" fill="#fbbf24"/>
+  <text x="256" y="345" text-anchor="middle" font-family="Arial,sans-serif" font-weight="bold" font-size="22" fill="#1a1a2e">UK TEST</text>
+</svg>
+echo "done"

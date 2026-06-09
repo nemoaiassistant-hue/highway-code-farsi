@@ -3,14 +3,31 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#4361ee" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="UK Theory" />
+  <link rel="manifest" href="/highway-code-farsi/manifest.json" />
   <title>آزمون تئوری موتورسیکلت — Motorcycle Theory Test</title>
   <meta name="description" content="Prepare for your UK Motorcycle Theory Test. Bilingual study guide in Farsi and English." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="assets/css/main.css" />
+  <style>
+    .splash{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s ease-out}
+    .splash.hidden{opacity:0;pointer-events:none}
+    .splash-icon{font-size:72px;animation:splashPulse 1.5s ease-in-out infinite}
+    .splash-title{color:#fff;font-size:28px;font-weight:700;margin-top:16px}
+    .splash-sub{color:rgba(255,255,255,.7);font-size:14px;margin-top:8px}
+    .splash-loader{width:48px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin-top:32px;overflow:hidden}
+    .splash-loader-bar{height:100%;width:40%;background:#4361ee;border-radius:2px;animation:splashLoad 1.2s ease-in-out infinite}
+    @keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+    @keyframes splashLoad{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+  </style>
 </head>
 <body>
+  <div class="splash" id="splash"><div class="splash-icon">🇬🇧</div><div class="splash-title">آزمون تئوری بریتانیا</div><div class="splash-sub">UK Theory Test Prep</div><div class="splash-loader"><div class="splash-loader-bar"></div></div></div>
   <header class="app-header">
     <div class="header-inner">
       <div class="brand">
@@ -134,5 +151,6 @@
   <script src="assets/js/data.js"></script>
   <script src="assets/js/signs.js"></script>
   <script src="assets/js/app.js"></script>
+  <script>window.addEventListener("load",function(){setTimeout(function(){var s=document.getElementById("splash");if(s)s.classList.add("hidden");setTimeout(function(){s.remove()},400)},800)});</script>
 </body>
 </html>
