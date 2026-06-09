@@ -1684,6 +1684,8 @@
           renderCategories();
         } else if (target === 'read') {
           openReadView();
+        } else if (target === 'signs') {
+          openSection('road-signs');
         } else if (target === 'flashcards') {
           openFlashcards();
         } else if (target === 'progress') {
@@ -1692,6 +1694,10 @@
           openQuizMenu();
         } else if (target === 'hazard') {
           openHazardGallery();
+        } else if (target === 'showme') {
+          state.showMeFilter = 'all';
+          showView('showme');
+          renderShowMeView();
         }
       });
     });
