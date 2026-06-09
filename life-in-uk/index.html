@@ -1,19 +1,172 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>آزمون زندگی در بریتانیا | Life in the UK Test | FarsiPrep</title>
-<meta name="description" content="آموزش رایگان آزمون زندگی در بریتانیا به زبان فارسی و انگلیسی - Life in the UK Test practice in Farsi and English">
-<link rel="stylesheet" href="assets/css/main-v1.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
-<meta name="theme-color" content="#6c5ce7">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#6c5ce7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Life in UK" />
+  <title>زندگی در بریتانیا — Life in the UK</title>
+  <meta name="description" content="Learn Life in the UK test in Farsi with English translations." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/main-v1.css" />
+  <style>
+    .splash{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s ease-out}
+    .splash.hidden{opacity:0;pointer-events:none}
+    .splash-icon{font-size:72px;animation:splashPulse 1.5s ease-in-out infinite}
+    .splash-title{color:#fff;font-size:28px;font-weight:700;margin-top:16px}
+    .splash-sub{color:rgba(255,255,255,.7);font-size:14px;margin-top:8px}
+    .splash-loader{width:48px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;margin-top:32px;overflow:hidden}
+    .splash-loader-bar{height:100%;width:40%;background:#6c5ce7;border-radius:2px;animation:splashLoad 1.2s ease-in-out infinite}
+    @keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+    @keyframes splashLoad{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+  </style>
 </head>
 <body>
-<div id="app"><div class="loading">...</div></div>
-<script src="assets/js/data-v1.js"></script>
-<script src="assets/js/app-v1.js"></script>
+  <div class="splash" id="splash"><div class="splash-icon">🇬🇧</div><div class="splash-title">زندگی در بریتانیا</div><div class="splash-sub">Life in the UK Test Prep</div><div class="splash-loader"><div class="splash-loader-bar"></div></div></div>
+
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <span class="brand-icon">🇬🇧</span>
+        <div class="brand-text">
+          <span class="brand-fa">زندگی در بریتانیا</span>
+          <span class="brand-en">Life in the UK</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="progress-pill" id="progressPill">
+          <span id="progressText">0%</span>
+        </div>
+        <div class="lang-flags">
+          <span class="lang-flag-btn active" id="langFa" title="فارسی">🇮🇷</span>
+          <span class="lang-flag-btn" id="langEn" title="English">🇬🇧</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- HOME VIEW -->
+    <div class="view active" id="homeView">
+      <div class="hero">
+        <h1 class="hero-title">زندگی در بریتانیا</h1>
+        <p class="hero-sub">آمادگی برای آزمون شهروندی بریتانیا به فارسی</p>
+        <p class="hero-sub-en">Life in the UK citizenship test prep in Farsi</p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-num" id="totalQuestions">0</span>
+          <span class="stat-label">سوال</span>
+          <span class="stat-label-en">Questions</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="lastScore">—</span>
+          <span class="stat-label">آخرین امتیاز</span>
+          <span class="stat-label-en">Last quiz score</span>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div id="quickActions"></div>
+
+      <h2 class="section-heading" id="catHeading">موضوع‌ها</h2>
+      <div class="category-grid" id="categoryGrid">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="cta-section">
+        <p>✏️ آزمون ۲۴ سوالی با نمره قبولی ۷۵٪</p>
+        <p class="cta-sub">24-question quiz with 75% pass mark</p>
+      </div>
+    </div>
+
+    <!-- SECTION VIEW -->
+    <div class="view" id="sectionView">
+      <button class="back-btn" id="backBtn">← بازگشت / Back</button>
+      <div class="section-content" id="sectionContent">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- QUIZ VIEW -->
+    <div class="view" id="quizView">
+      <button class="back-btn" id="quizBackBtn">← بازگشت / Back</button>
+      <div class="quiz-container" id="quizContainer">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- STUDY VIEW -->
+    <div class="view" id="studyView">
+      <button class="back-btn" id="studyBackBtn">← بازگشت / Back</button>
+      <div class="study-container" id="studyContainer">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+
+    <!-- PROGRESS VIEW -->
+    <div class="view" id="progressView">
+      <div class="progress-container" id="progressContainer">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Bottom Tab Navigation -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button class="bottom-nav-item" id="navMore" onclick="toggleMoreMenu(event)">
+      <span class="bottom-nav-icon">⋯</span>
+      <span class="bottom-nav-label">بیشتر</span>
+    </button>
+    <button class="bottom-nav-item active" id="navHome" data-target="home">
+      <span class="bottom-nav-icon">🏠</span>
+      <span class="bottom-nav-label">خانه</span>
+    </button>
+    <button class="bottom-nav-item" id="navStudy" data-target="study">
+      <span class="bottom-nav-icon">📖</span>
+      <span class="bottom-nav-label">مطالعه</span>
+    </button>
+    <button class="bottom-nav-item" id="navQuiz" data-target="quiz">
+      <span class="bottom-nav-icon">✏️</span>
+      <span class="bottom-nav-label">آزمون</span>
+    </button>
+    <button class="bottom-nav-item" id="navProgress" data-target="progress">
+      <span class="bottom-nav-icon">📊</span>
+      <span class="bottom-nav-label">پیشرفت</span>
+    </button>
+  </nav>
+
+  <!-- More Menu Popup -->
+  <div class="more-menu" id="moreMenu">
+    <div class="more-menu-backdrop" onclick="closeMoreMenu()"></div>
+    <div class="more-menu-sheet">
+      <button class="more-menu-item" onclick="navFromMore('study')">📖 مطالعه آزاد / Study All</button>
+      <button class="more-menu-item" onclick="navFromMore('progress')">📊 پیشرفت / Progress</button>
+    </div>
+  </div>
+
+  <script src="assets/js/data-v1.js"></script>
+  <script src="assets/js/app-v1.js"></script>
+  <script>
+    function toggleMoreMenu(e) {
+      e && e.stopPropagation();
+      document.getElementById('moreMenu').classList.toggle('open');
+    }
+    function closeMoreMenu() {
+      document.getElementById('moreMenu').classList.remove('open');
+    }
+    function navFromMore(target) {
+      closeMoreMenu();
+      if (typeof showView === 'function') showView(target);
+      else if (typeof openStudy === 'function' && target === 'study') openStudy();
+      else if (typeof openProgress === 'function' && target === 'progress') openProgress();
+    }
+  </script>
+  <script>window.addEventListener("load",function(){setTimeout(function(){var s=document.getElementById("splash");if(s)s.classList.add("hidden");setTimeout(function(){s.remove()},400)},800)});</script>
 </body>
 </html>
