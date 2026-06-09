@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="assets/css/main-v3.css" />
+  <link rel="stylesheet" href="assets/css/main-v4.css" />
 </head>
 <body>
   <header class="app-header">
@@ -24,9 +24,10 @@
         <div class="progress-pill" id="progressPill">
           <span id="progressText">0%</span>
         </div>
-        <button class="lang-toggle" id="langToggle" title="Switch language">
-          <span class="lang-flag">🇮🇷</span>
-        </button>
+        <div class="lang-flags">
+          <span class="lang-flag-btn active" id="langFa" title="فارسی">🇮🇷</span>
+          <span class="lang-flag-btn" id="langEn" title="English">🇬🇧</span>
+        </div>
       </div>
     </div>
   </header>
@@ -132,6 +133,6 @@
 
   <script src="assets/js/data.js"></script>
   <script src="assets/js/signs.js"></script>
-  <script src="assets/js/app-v5.js"></script>
+  <script src="assets/js/app-v6.js"></script>
 </body>
 </html>
