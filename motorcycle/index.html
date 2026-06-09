@@ -169,6 +169,23 @@
   <script src="assets/js/app.js"></script>
   <script src="assets/js/showme.js"></script>
   <script src="assets/js/hazard.js"></script>
+    <script>
+  function toggleMoreMenu(e) {
+    e && e.stopPropagation();
+    document.getElementById('moreMenu').classList.toggle('open');
+  }
+  function closeMoreMenu() {
+    document.getElementById('moreMenu').classList.remove('open');
+  }
+  function navFromMore(target) {
+    closeMoreMenu();
+    if (target === 'hazard' && typeof openHazardGallery === 'function') openHazardGallery();
+    else if (target === 'flashcards' && typeof openFlashcards === 'function') openFlashcards();
+    else if (target === 'showme' && typeof openShowMe === 'function') openShowMe();
+    else if (target === 'progress' && typeof openProgress === 'function') openProgress();
+    else if (typeof showView === 'function') showView(target);
+  }
+  </script>
   <script>window.addEventListener("load",function(){setTimeout(function(){var s=document.getElementById("splash");if(s)s.classList.add("hidden");setTimeout(function(){s.remove()},400)},800)});</script>
 </body>
 </html>
