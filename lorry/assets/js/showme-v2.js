@@ -6,7 +6,7 @@ const SHOW_ME_TELL_ME = [
     type: "tell",
     questionFa: "چگونه ترمز سرویس خودرو سنگین را بررسی می‌کنید؟",
     questionEn: "How would you check the service brake?",
-    answerFa: "پیش از حرکت، فشار هوای سیستم را تا محدوده کاری بالا می‌برم و مطمئن می‌شوم هشدار فشار کم خاموش شده است. پدال ترمز را فشار می‌دهم؛ نباید حالت اسفنجی، حرکت بیش از حد یا افت غیرعادی فشار وجود داشته باشد. سپس در محل امن و با سرعت کم ترمز می‌کنم؛ خودرو باید مستقیم، مؤثر و بدون کشیدن به یک سمت متوقف شود.",
+    answerFa: "پیش از حرکت، فشار هوای سیستم را تا محدوده کاری بالا می‌برم و مطمئن می‌شوم هشدار فشار کم خاموش شده است. پدال ترمز را فشار می‌دهم؛ نباید حالت اسفنجی، حرکت بیش از حد یا افت غیرعادی فشار وجود داشته باشد. سپس در محل امن و با سرعت کم ترمز می‌کنم؛ خودرو باید مستقیم، مؤثر و بدون انحراف به یک سمت متوقف شود.",
     answerEn: "Before moving, build the air pressure to its operating range and ensure the low-pressure warning has cleared. Apply the brake pedal; it should not feel spongy, travel excessively or cause abnormal pressure loss. Then brake at low speed in a safe area; the vehicle should stop effectively and in a straight line.",
     tipFa: "با هشدار فشار هوای کم یا ترمز معیوب هرگز حرکت نکنید.",
     tipEn: "Never move with a low-air-pressure warning or defective brakes."
@@ -36,7 +36,7 @@ const SHOW_ME_TELL_ME = [
     type: "tell",
     questionFa: "چگونه از ایمن‌بودن اتصال تریلر مطمئن می‌شوید؟",
     questionEn: "How would you check trailer coupling security?",
-    answerFa: "پس از اتصال، قفل‌شدن مکانیزم را با بازدید مستقیم و نشانگر ایمنی بررسی می‌کنم و آزمون کشش آرام انجام می‌دهم. پایه‌های تریلر باید کاملاً بالا و محکم باشند، دستگیره و قفل‌ها در جای خود قرار گیرند و شلنگ‌های هوا و کابل برق درست متصل، بدون پیچ‌خوردگی و با فضای کافی برای گردش باشند. ترمز تریلر و چراغ‌ها را نیز آزمایش می‌کنم.",
+    answerFa: "پس از اتصال، قفل‌شدن مکانیزم را با بررسی بصری و نشانگر ایمنی بررسی می‌کنم و آزمون کشش آرام انجام می‌دهم. پایه‌های تریلر باید کاملاً بالا و محکم باشند، دستگیره و قفل‌ها در جای خود قرار گیرند و شلنگ‌های هوا و کابل برق درست متصل، بدون پیچ‌خوردگی و با فضای کافی برای گردش باشند. ترمز تریلر و چراغ‌ها را نیز آزمایش می‌کنم.",
     answerEn: "After coupling, visually confirm the mechanism and safety indicator are locked, then perform a gentle tug test. Landing legs must be fully raised and secured, handles and locks stowed, and air lines and electrical leads correctly connected, untwisted and free to turn. Also test the trailer brakes and lights.",
     tipFa: "فقط به صدای قفل‌شدن اعتماد نکنید؛ اتصال را از نزدیک و با آزمون کشش تأیید کنید.",
     tipEn: "Do not rely only on the locking sound; visually inspect and tug-test the coupling."
@@ -56,7 +56,7 @@ const SHOW_ME_TELL_ME = [
     type: "tell",
     questionFa: "چگونه بازتابنده‌ها و نشانگرهای خودرو را بررسی می‌کنید؟",
     questionEn: "How would you check reflectors and marker lights?",
-    answerFa: "دور خودرو و تریلر راه می‌روم و بازتابنده‌ها، نوارهای شب‌نما، چراغ‌های جانبی، چراغ‌های تعیین عرض و علائم عقب را بررسی می‌کنم. همه باید مطابق محل مقرر نصب، تمیز، سالم، محکم و بدون پوشیدگی توسط گل، برزنت یا بار باشند. رنگ و جهت آن‌ها نیز باید صحیح باشد.",
+    answerFa: "دور خودرو و تریلر راه می‌روم و بازتابنده‌ها، نوارهای شب‌نما، چراغ‌های جانبی، چراغ‌های تعیین عرض و علائم عقب را بررسی می‌کنم. همه باید مطابق محل مقرر نصب، تمیز، سالم، محکم و بدون پوشش گل، برزنت یا بار باشند. رنگ و جهت آن‌ها نیز باید صحیح باشد.",
     answerEn: "Walk around the vehicle and trailer, checking reflectors, conspicuity markings, side markers, outline lights and rear markings. They must be correctly positioned, clean, undamaged, secure and unobscured by dirt, sheets or the load. Their colour and orientation must also be correct.",
     tipFa: "کثیفی روی علائم بازتابنده می‌تواند خودرو بزرگ را در شب تقریباً نامرئی کند.",
     tipEn: "Dirt on reflective markings can make a large vehicle very difficult to see at night."
@@ -66,7 +66,7 @@ const SHOW_ME_TELL_ME = [
     type: "tell",
     questionFa: "چگونه وضعیت لاستیک‌های خودرو سنگین را بررسی می‌کنید؟",
     questionEn: "How would you check HGV tyre condition?",
-    answerFa: "تمام لاستیک‌ها، از جمله جفت‌چرخ‌ها، را از نظر بریدگی عمیق، برآمدگی، نمایان‌شدن سیم، جسم خارجی، فرسودگی نامنظم و فشار نامناسب بررسی می‌کنم. حداقل معمول آج برای خودرو سنگین ۱ میلی‌متر در سه‌چهارم میانی پهنا و در تمام محیط است. بین جفت‌چرخ‌ها نباید سنگ یا جسم گیر کرده باشد و تایرهای یک محور باید از نظر نوع و اندازه سازگار باشند.",
+    answerFa: "تمام لاستیک‌ها، از جمله جفت‌چرخ‌ها، را از نظر بریدگی عمیق، برآمدگی، نمایان‌شدن سیم، جسم خارجی، فرسودگی نامنظم و فشار نامناسب بررسی می‌کنم. حداقل عمق آج برای خودرو سنگین ۱ میلی‌متر در سه‌چهارم میانی پهنا و در تمام محیط است. بین جفت‌چرخ‌ها نباید سنگ یا جسم گیر کرده باشد و لاستیک‌های یک محور باید از نظر نوع و اندازه سازگار باشند.",
     answerEn: "Inspect every tyre, including twin wheels, for deep cuts, bulges, exposed cord, embedded objects, uneven wear and incorrect pressure. The normal legal minimum for large vehicles is 1 mm across the central three-quarters and around the entire circumference. Nothing should be trapped between twins, and tyres on an axle must be compatible in type and size.",
     tipFa: "کناره داخلی جفت‌چرخ‌ها را با دقت ببینید؛ عیب آن قسمت به‌راحتی پنهان می‌ماند.",
     tipEn: "Inspect the inner faces of twin tyres carefully; defects there are easily missed."
@@ -74,7 +74,7 @@ const SHOW_ME_TELL_ME = [
   {
     id: 8,
     type: "tell",
-    questionFa: "چگونه کالیبراسیون تاخوگراف را بررسی می‌کنید؟",
+    questionFa: "چگونه کالیبراسیون تاچوگراف را بررسی می‌کنید؟",
     questionEn: "How would you check tachograph calibration?",
     answerFa: "پلاک یا برچسب کالیبراسیون را بررسی می‌کنم تا تاریخ آخرین کالیبراسیون، مشخصات خودرو و اندازه مؤثر لاستیک‌ها با خودرو مطابقت داشته باشد و مهلت بازرسی نگذشته باشد. پلمب‌ها باید سالم باشند و دستگاه نباید خطا نشان دهد. پس از تغییراتی مانند اندازه لاستیک یا پلاک خودرو ممکن است کالیبراسیون مجدد لازم باشد.",
     answerEn: "Check the calibration plaque or label to confirm the last calibration date, vehicle details and effective tyre size match the vehicle and that inspection is not overdue. Seals must be intact and the unit must show no fault. Recalibration may be required after changes such as tyre size or registration details.",
@@ -106,7 +106,7 @@ const SHOW_ME_TELL_ME = [
     type: "show",
     questionFa: "نشان دهید چگونه مکانیزم اتصال تریلر را به کار می‌اندازید.",
     questionEn: "Show how you would operate the coupling mechanism.",
-    answerFa: "خودرو و تریلر را روی سطح محکم و صاف قرار می‌دهم، ترمزهای پارک را درگیر و اطراف را بررسی می‌کنم. طبق روش سازنده، ارتفاع را تنظیم می‌کنم، به‌آرامی هم‌راستا می‌شوم و اتصال را درگیر می‌کنم. سپس بازدید مستقیم، درگیری ضامن ایمنی و آزمون کشش را انجام می‌دهم؛ بعد شلنگ‌ها و کابل‌ها را وصل و پایه‌ها را کاملاً بالا می‌برم.",
+    answerFa: "خودرو و تریلر را روی سطح محکم و صاف قرار می‌دهم، ترمزهای پارک را درگیر و اطراف را بررسی می‌کنم. طبق روش سازنده، ارتفاع را تنظیم می‌کنم، به‌آرامی هم‌راستا می‌شوم و اتصال را درگیر می‌کنم. سپس بررسی بصری، درگیری ضامن ایمنی و آزمون کشش را انجام می‌دهم؛ بعد شلنگ‌ها و کابل‌ها را وصل و پایه‌ها را کاملاً بالا می‌برم.",
     answerEn: "Position vehicle and trailer on firm, level ground, apply parking brakes and check the area. Following the manufacturer's procedure, set the height, align slowly and engage the coupling. Visually inspect it, secure the safety lock and tug-test it; then connect lines and leads and fully raise the landing legs.",
     tipFa: "ترتیب دقیق اتصال و جداسازی را همیشه طبق سازنده و رویه شرکت انجام دهید.",
     tipEn: "Always follow the manufacturer's and operator's exact coupling and uncoupling sequence."
@@ -138,7 +138,7 @@ const SHOW_ME_TELL_ME = [
     questionEn: "Show how you would check mirror adjustment.",
     answerFa: "ابتدا صندلی و وضعیت رانندگی را درست تنظیم می‌کنم، سپس آینه‌های اصلی، زاویه‌باز، نزدیک و جلو را طوری تنظیم می‌کنم که نواحی مورد نظر اطراف خودرو دیده شوند و نقاط کور تا حد ممکن کاهش یابند. شیشه آینه‌ها و دوربین‌ها باید تمیز، سالم و محکم باشند. تنظیم را پیش از حرکت انجام می‌دهم.",
     answerEn: "First set the seat and driving position correctly, then adjust the main, wide-angle, close-proximity and front mirrors to cover their intended areas and minimise blind spots. Mirror glass and cameras must be clean, undamaged and secure. Make adjustments before moving.",
-    tipFa: "آینه‌ها نقاط کور را کم می‌کنند، اما بازدید مستقیم و استفاده درست از دوربین‌ها همچنان لازم است.",
+    tipFa: "آینه‌ها نقاط کور را کم می‌کنند، اما بررسی بصری و استفاده درست از دوربین‌ها همچنان لازم است.",
     tipEn: "Mirrors reduce blind spots, but direct observation and correct camera use are still necessary."
   },
   {
