@@ -256,6 +256,10 @@
     showView('showme');
     renderShowMeView();
   };
+  window.openHazardGallery = openHazardGallery;
+  window.openFlashcards = openFlashcards;
+  window.openProgress = openProgress;
+  window.showView = showView;
 
   // =============================================
   // HAZARD PERCEPTION
