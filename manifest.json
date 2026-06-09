@@ -2,7 +2,7 @@
   "name": "آزمون تئوری رانندگی بریتانیا — UK Theory Test",
   "short_name": "UK Theory",
   "description": "Bilingual Farsi-English UK driving theory test study app for car, motorcycle, and LGV/PCV",
-  "start_url": "/highway-code-farsi/",
+  "start_url": "/farsiprep/",
   "display": "standalone",
   "background_color": "#f8f7f4",
   "theme_color": "#4361ee",
