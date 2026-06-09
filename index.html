@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>آزمون تئوری رانندگی بریتانیا — UK Theory Test</title>
-  <meta name="description" content="آمادگی آزمون تئوری رانندگی بریتانیا به فارسی و انگلیسی. خودرو، موتورسیکلت، کامیون." />
+  <title>FarsiPrep — مرکز آمادگی آزمون برای ایرانیان در بریتانیا</title>
+  <meta name="description" content="آمادگی آزمون‌های بریتانیا به زبان فارسی و انگلیسی. آزمون تئوری رانندگی، آزمون شهروندی، زبان انگلیسی و بیشتر." />
   <meta name="theme-color" content="#4361ee" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="UK Theory" />
+  <meta name="apple-mobile-web-app-title" content="FarsiPrep" />
   <link rel="manifest" href="/highway-code-farsi/manifest.json" />
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="assets/icon.svg" />
@@ -25,6 +25,24 @@
       min-height: 100vh;
       padding-bottom: 40px;
     }
+
+    /* ===== SPLASH ===== */
+    .splash {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transition: opacity 0.4s ease-out;
+    }
+    .splash.hidden { opacity: 0; pointer-events: none; }
+    .splash-icon { font-size: 72px; animation: splashPulse 1.5s ease-in-out infinite; }
+    .splash-title { color: #fff; font-size: 28px; font-weight: 700; margin-top: 16px; }
+    .splash-sub { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 8px; }
+    .splash-loader { width: 48px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin-top: 32px; overflow: hidden; }
+    .splash-loader-bar { height: 100%; width: 40%; background: #4361ee; border-radius: 2px; animation: splashLoad 1.2s ease-in-out infinite; }
+    @keyframes splashPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    @keyframes splashLoad { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+
+    /* ===== HERO ===== */
     .hero {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: #fff;
@@ -32,51 +50,92 @@
       text-align: center;
       direction: rtl;
     }
-    .hero-icon { font-size: 56px; margin-bottom: 16px; }
+    .hero-brand {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #4361ee;
+      margin-bottom: 8px;
+      direction: ltr;
+    }
     .hero h1 {
       font-size: 28px;
       font-weight: 800;
       margin-bottom: 8px;
       line-height: 1.4;
     }
-    .hero h1 span { display: block; font-size: 16px; font-weight: 400; opacity: 0.8; margin-top: 4px; }
+    .hero h1 span {
+      display: block;
+      font-size: 15px;
+      font-weight: 400;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
     .hero p {
       font-size: 15px;
       opacity: 0.85;
-      max-width: 500px;
+      max-width: 520px;
       margin: 12px auto 0;
       line-height: 1.7;
     }
     .hero-stats {
       display: flex;
       justify-content: center;
-      gap: 24px;
+      gap: 20px;
       margin-top: 24px;
+      flex-wrap: wrap;
     }
-    .hero-stat {
-      text-align: center;
-    }
-    .hero-stat .num { font-size: 24px; font-weight: 700; color: #4361ee; }
-    .hero-stat .label { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+    .hero-stat { text-align: center; }
+    .hero-stat .num { font-size: 22px; font-weight: 700; color: #4361ee; }
+    .hero-stat .label { font-size: 10px; opacity: 0.7; margin-top: 2px; }
+
+    /* ===== CONTAINER ===== */
     .container {
       max-width: 600px;
       margin: 0 auto;
       padding: 24px 16px;
     }
-    .section-label {
-      font-size: 13px;
-      font-weight: 600;
+
+    /* ===== CATEGORY SECTION ===== */
+    .category-section {
+      margin-bottom: 32px;
+    }
+    .category-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: #1a1a2e;
+    }
+    .category-label .emoji { font-size: 22px; }
+    .category-label .en {
+      font-size: 12px;
+      font-weight: 400;
       color: #888;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 16px;
+      margin-right: auto;
       direction: ltr;
+    }
+    .category-divider {
+      height: 1px;
+      background: linear-gradient(to left, transparent, #ddd, transparent);
+      margin-bottom: 32px;
+    }
+
+    /* ===== COURSE CARDS ===== */
+    .courses-grid {
+      display: grid;
+      gap: 12px;
+    }
+    .courses-grid.three-col {
+      grid-template-columns: 1fr 1fr 1fr;
     }
     .course-card {
       background: #fff;
       border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 16px;
+      padding: 20px 16px;
       border: 1px solid #eee;
       transition: transform 0.2s, box-shadow 0.2s;
       cursor: pointer;
@@ -84,6 +143,7 @@
       display: block;
       color: inherit;
       direction: rtl;
+      text-align: center;
     }
     .course-card:hover {
       transform: translateY(-2px);
@@ -91,77 +151,71 @@
       border-color: #4361ee;
     }
     .course-card:active { transform: translateY(0); }
-    .course-header {
+    .course-card .card-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+    .course-card .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .course-card .card-sub {
+      font-size: 11px;
+      color: #888;
+    }
+    .course-card .card-badge {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+    .card-badge.live { background: #dcfce7; color: #166534; }
+    .card-badge.soon { background: #fef3c7; color: #92400e; }
+
+    /* Full-width card variant */
+    .course-card.wide {
+      padding: 20px 24px;
+      text-align: right;
       display: flex;
       align-items: center;
       gap: 16px;
-      margin-bottom: 12px;
     }
-    .course-icon {
-      width: 56px;
-      height: 56px;
+    .course-card.wide .card-icon {
+      font-size: 40px;
+      margin-bottom: 0;
+      width: 60px;
+      height: 60px;
       border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
       flex-shrink: 0;
     }
-    .course-info h2 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .course-info h2 span {
-      display: block;
+    .course-card.wide .card-body { flex: 1; }
+    .course-card.wide .card-title { font-size: 16px; }
+    .course-card.wide .card-desc {
       font-size: 13px;
-      font-weight: 400;
-      color: #888;
+      color: #666;
+      line-height: 1.6;
+      margin-top: 4px;
     }
-    .course-desc {
-      font-size: 14px;
-      line-height: 1.7;
-      color: #555;
-      margin-bottom: 16px;
-    }
-    .course-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .course-badge {
-      font-size: 11px;
-      font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: #f0f0f0;
-      color: #555;
-    }
-    .course-badge.live { background: #dcfce7; color: #166534; }
-    .course-badge.soon { background: #fef3c7; color: #92400e; }
-    .course-badge.popular { background: #dbeafe; color: #1e40af; }
-    .course-cta {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 16px;
-      padding: 12px;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #fff;
-      background: #4361ee;
-    }
-    .course-card.disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+
+    /* Coming soon card */
+    .course-card.coming-soon {
+      opacity: 0.55;
+      cursor: default;
       pointer-events: none;
     }
-    .course-card.disabled .course-cta {
-      background: #ccc;
-      color: #999;
+    .course-card.coming-soon:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: #eee;
     }
+
+    /* ===== FEATURES ===== */
     .features {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -179,6 +233,8 @@
     .feature h3 { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
     .feature h3 span { display: block; font-size: 11px; font-weight: 400; color: #888; }
     .feature p { font-size: 11px; color: #555; line-height: 1.5; margin-top: 6px; }
+
+    /* ===== FOOTER ===== */
     .footer {
       text-align: center;
       padding: 32px 16px 24px;
@@ -186,166 +242,127 @@
       color: #999;
     }
     .footer a { color: #4361ee; text-decoration: none; }
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: #888;
-      text-decoration: none;
-      margin-bottom: 16px;
-    }
-    .back-link:hover { color: #4361ee; }
 
     @media (max-width: 400px) {
       .hero h1 { font-size: 24px; }
-      .course-icon { width: 48px; height: 48px; font-size: 24px; }
+      .courses-grid.three-col { grid-template-columns: 1fr; }
       .features { grid-template-columns: 1fr; }
-      .hero-stats { gap: 16px; }
-    }
-
-    /* ===== SPLASH SCREEN ===== */
-    .splash {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      transition: opacity 0.4s ease-out;
-    }
-    .splash.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    .splash-icon {
-      font-size: 72px;
-      animation: splashPulse 1.5s ease-in-out infinite;
-    }
-    .splash-title {
-      color: #fff;
-      font-size: 28px;
-      font-weight: 700;
-      margin-top: 16px;
-    }
-    .splash-sub {
-      color: rgba(255,255,255,0.7);
-      font-size: 14px;
-      margin-top: 8px;
-    }
-    .splash-loader {
-      width: 48px;
-      height: 4px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 2px;
-      margin-top: 32px;
-      overflow: hidden;
-    }
-    .splash-loader-bar {
-      height: 100%;
-      width: 40%;
-      background: #4361ee;
-      border-radius: 2px;
-      animation: splashLoad 1.2s ease-in-out infinite;
-    }
-    @keyframes splashPulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
-    @keyframes splashLoad {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(350%); }
+      .hero-stats { gap: 12px; }
     }
   </style>
 </head>
 <body>
 
-<!-- SPLASH SCREEN -->
+<!-- SPLASH -->
 <div class="splash" id="splash">
-  <div class="splash-icon">🇬🇧</div>
-  <div class="splash-title">آزمون تئوری بریتانیا</div>
-  <div class="splash-sub">UK Theory Test Prep</div>
+  <div class="splash-icon">📚</div>
+  <div class="splash-title">FarsiPrep</div>
+  <div class="splash-sub">مرکز آمادگی آزمون</div>
   <div class="splash-loader"><div class="splash-loader-bar"></div></div>
 </div>
 
+<!-- HERO -->
 <div class="hero">
-  <div class="hero-icon">🇬🇧</div>
+  <div class="hero-brand">FarsiPrep</div>
   <h1>
-    آزمون تئوری بریتانیا
-    <span>UK Theory Test Prep</span>
+    مرکز آمادگی آزمون
+    <span>Exam Prep for Iranians in the UK</span>
   </h1>
-  <p>آمادگی آزمون تئوری رانندگی بریتانیا به زبان فارسی و انگلیسی. مطالعه، فلشکارت، آزمون و پیشرفت.</p>
+  <p>آمادگی آزمون‌های بریتانیا به زبان فارسی و انگلیسی. رانندگی، شهروندی، زبان و بیشتر.</p>
   <div class="hero-stats">
-    <div class="hero-stat"><div class="num">3</div><div class="label">دوره / Courses</div></div>
+    <div class="hero-stat"><div class="num">4</div><div class="label">دوره / Courses</div></div>
     <div class="hero-stat"><div class="num">400+</div><div class="label">قانون / Rules</div></div>
-    <div class="hero-stat"><div class="num">150+</div><div class="label">آزمون / Quizzes</div></div>
-    <div class="hero-stat"><div class="num">50</div><div class="label">صحنه خطر / Hazards</div></div>
+    <div class="hero-stat"><div class="num">200+</div><div class="label">سوال / Questions</div></div>
+    <div class="hero-stat"><div class="num">2</div><div class="label">زبان / Languages</div></div>
   </div>
-  <div style="text-align:center;margin-top:16px;font-size:12px;opacity:0.6;font-style:italic;">Crafted by Nima Hakimmaani</div>
+  <div style="text-align:center;margin-top:16px;font-size:12px;opacity:0.6;font-style:italic">Crafted by Nima Hakimmaani</div>
 </div>
 
 <div class="container">
 
-  <div class="section-label">دوره‌ها / Courses</div>
+  <!-- ===== DRIVING ===== -->
+  <div class="category-section">
+    <div class="category-label">
+      <span class="emoji">🚗</span>
+      <span>رانندگی / Driving</span>
+      <span class="en">Theory Test Prep</span>
+    </div>
+    <div class="courses-grid three-col">
+      <a href="car/" class="course-card">
+        <div class="card-icon">🚗</div>
+        <div class="card-title">خودرو</div>
+        <div class="card-sub">Car Theory</div>
+        <span class="card-badge live">✅ فعال</span>
+      </a>
+      <a href="motorcycle/" class="course-card">
+        <div class="card-icon">🏍️</div>
+        <div class="card-title">موتورسیکلت</div>
+        <div class="card-sub">Motorcycle</div>
+        <span class="card-badge live">✅ فعال</span>
+      </a>
+      <a href="lorry/" class="course-card">
+        <div class="card-icon">🚛</div>
+        <div class="card-title">کامیون</div>
+        <div class="card-sub">LGV & HGV</div>
+        <span class="card-badge live">✅ فعال</span>
+      </a>
+    </div>
+  </div>
 
-  <!-- CAR -->
-  <a href="car/" class="course-card">
-    <div class="course-header">
-      <div class="course-icon" style="background:#dbeafe;color:#1e40af">🚗</div>
-      <div class="course-info">
-        <h2>خودرو / Car Theory <span>Car / Light Vehicle</span></h2>
-      </div>
-    </div>
-    <div class="course-desc">
-      کد بزرگراه بریتانیا کامل — ۱۵ بخش، ۱۵۴ قانون، ۴۷ آزمون. شامل علائم راهنمایی رسمی، فلشکارت، و حالت صوتی.
-    </div>
-    <div class="course-meta">
-      <span class="course-badge live">✅ فعال</span>
-      <span class="course-badge popular">⭐ محبوب‌ترین</span>
-      <span class="course-badge">۱۵ بخش · ۱۵۴ قانون</span>
-    </div>
-    <div class="course-cta">شروع مطالعه / Start Learning →</div>
-  </a>
+  <div class="category-divider"></div>
 
-  <!-- MOTORCYCLE -->
-  <a href="motorcycle/" class="course-card">
-    <div class="course-header">
-      <div class="course-icon" style="background:#fef3c7;color:#92400e">🏍️</div>
-      <div class="course-info">
-        <h2>موتورسیکلت / Motorcycle <span>Motorcycle / Moped</span></h2>
-      </div>
+  <!-- ===== CITIZENSHIP ===== -->
+  <div class="category-section">
+    <div class="category-label">
+      <span class="emoji">🇬🇧</span>
+      <span>شهروندی / Citizenship</span>
+      <span class="en">British Life &amp; Values</span>
     </div>
-    <div class="course-desc">
-      قوانین ویژه موتورسیکلت — تجهیزات ایمنی، کنترل، چهارراه‌ها، بزرگراه‌ها، آبوهوا و سوارکاری ایمن.
+    <div class="courses-grid">
+      <a href="life-in-uk/" class="course-card wide">
+        <div class="card-icon" style="background:#dbeafe;color:#1e40af">🇬🇧</div>
+        <div class="card-body">
+          <div class="card-title">آزمون زندگی در بریتانیا</div>
+          <div class="card-sub">Life in the UK Test</div>
+          <div class="card-desc">آمادگی آزمون شهروندی ۲۴ سوالی — تاریخ، فرهنگ، قانون و ارزش‌های بریتانیا</div>
+          <span class="card-badge live">✅ فعال</span>
+        </div>
+      </a>
     </div>
-    <div class="course-meta">
-      <span class="course-badge live">✅ فعال</span>
-      <span class="course-badge">۱۲ بخش · آزمون</span>
-    </div>
-    <div class="course-cta" style="background:#f59e0b">شروع مطالعه / Start Learning →</div>
-  </a>
+  </div>
 
-  <!-- LORRY -->
-  <a href="lorry/" class="course-card">
-    <div class="course-header">
-      <div class="course-icon" style="background:#fce7f3;color:#9d174d">🚛</div>
-      <div class="course-info">
-        <h2>کامیون و اتوبوس / LGV & PCV <span>Lorry / Bus / HGV</span></h2>
-      </div>
-    </div>
-    <div class="course-desc">
-      قوانین حرفه‌ای رانندگان سنگین — بارگیری، ساعات رانندگی، تاکوگراف، محدودیت وزن و ایمنی.
-    </div>
-    <div class="course-meta">
-      <span class="course-badge live">✅ فعال</span>
-      <span class="course-badge">۱۲ بخش · آزمون</span>
-    </div>
-    <div class="course-cta" style="background:#ec4899">شروع مطالعه / Start Learning →</div>
-  </a>
+  <div class="category-divider"></div>
 
-  <div class="section-label" style="margin-top:32px">ویژگی‌ها / Features</div>
+  <!-- ===== ENGLISH ===== -->
+  <div class="category-section">
+    <div class="category-label">
+      <span class="emoji">🗣️</span>
+      <span>زبان انگلیسی / English</span>
+      <span class="en">Language Qualifications</span>
+    </div>
+    <div class="courses-grid" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+      <a href="#" class="course-card coming-soon">
+        <div class="card-icon">📝</div>
+        <div class="card-title">B1 English</div>
+        <div class="card-sub">Speaking &amp; Listening</div>
+        <span class="card-badge soon">🚧 به‌زودی</span>
+      </a>
+      <a href="#" class="course-card coming-soon">
+        <div class="card-icon">📋</div>
+        <div class="card-title">IELTS</div>
+        <div class="card-sub">Academic &amp; General</div>
+        <span class="card-badge soon">🚧 به‌زودی</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="category-divider"></div>
+
+  <!-- ===== FEATURES ===== -->
+  <div class="category-label" style="margin-bottom:14px">
+    <span class="emoji">✨</span>
+    <span>ویژگی‌ها / Features</span>
+  </div>
 
   <div class="features">
     <div class="feature">
@@ -354,50 +371,29 @@
       <p>هر بخش با متن فارسی و انگلیسی</p>
     </div>
     <div class="feature">
-      <div class="feature-icon">🪧</div>
-      <h3>علائم راهنمایی <span>Road Signs</span></h3>
-      <p>تصاویر رسمی تابلوها</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🔄</div>
-      <h3>فلشکارت <span>Flashcards</span></h3>
-      <p>مرور سریع و بازیابی اطلاعات</p>
+      <div class="feature-icon">🌐</div>
+      <h3>دوزبانه <span>Bilingual</span></h3>
+      <p>فارسی و انگلیسی در هر صفحه</p>
     </div>
     <div class="feature">
       <div class="feature-icon">📝</div>
-      <h3>آزمون شبیه‌سازی <span>Mock Test</span></h3>
-      <p>۵۰ سوال، ۵۷ دقیقه، دقیقاً مثل DVSA</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">⚠️</div>
-      <h3>تشخیص خطر <span>Hazard Perception</span></h3>
-      <p>۵۰ صحنه AI با تصاویر واقعی</p>
-    </div>
-    <div class="feature">
-      <div class="feature-icon">🔧</div>
-      <h3>نمایش / توضیح <span>Show Me / Tell Me</span></h3>
-      <p>سوالات عملی آزمون رانندگی</p>
+      <h3>آزمون شبیه‌سازی <span>Mock Tests</span></h3>
+      <p>شبیه‌سازی واقعی شرایط آزمون</p>
     </div>
     <div class="feature">
       <div class="feature-icon">📊</div>
       <h3>پیشرفت <span>Progress</span></h3>
       <p>پیگیری بخش‌های مطالعه شده</p>
     </div>
-    <div class="feature">
-      <div class="feature-icon">🌐</div>
-      <h3>دوزبانه <span>Bilingual</span></h3>
-      <p>فارسی و انگلیسی در هر صفحه</p>
-    </div>
   </div>
 
 </div>
 
 <div class="footer">
-  <p>🇬🇧 British Theory Test Prep — فارسی و English</p>
+  <p>FarsiPrep — 🇬🇧 فارسی و English</p>
 </div>
 
 <script>
-  // Dismiss splash screen after content loads
   window.addEventListener('load', function() {
     setTimeout(function() {
       var splash = document.getElementById('splash');
@@ -405,8 +401,6 @@
       setTimeout(function() { splash.remove(); }, 400);
     }, 800);
   });
-
-  // Register service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/highway-code-farsi/sw.js').catch(function(){});
   }
