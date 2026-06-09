@@ -10,6 +10,7 @@
   const state = {
     currentView: 'home',
     currentCategory: null,
+    showMeFilter: 'all',
     quizIndex: 0,
     quizAnswered: false,
     quizScore: 0,
@@ -207,7 +208,7 @@
   // BOTTOM NAV
   // =============================================
   function updateBottomNav(active) {
-    const map = { home: 'navHome', read: 'navRead', flashcards: 'navFlashcards', progress: 'navProgress' };
+    const map = { home: 'navHome', read: 'navRead', flashcards: 'navFlashcards', progress: 'navProgress', showme: 'navShowMe' };
     const activeId = map[active] || 'navHome';
     $$('.bottom-nav-item').forEach(btn => {
       btn.classList.toggle('active', btn.id === activeId);
@@ -218,6 +219,7 @@
   // INIT
   // =============================================
   function init() {
+    ensureShowMeUI();
     renderCategories();
     updateProgress();
     updateStats();
@@ -228,6 +230,84 @@
     if ('speechSynthesis' in window) {
       speechSynthesis.onvoiceschanged = initAudioVoices;
     }
+  }
+
+  // =============================================
+  // SHOW ME / TELL ME
+  // =============================================
+  function ensureShowMeUI() {
+    $('#app').insertAdjacentHTML('beforeend', '<div class="view" id="showmeView"><div id="showmeContainer"></div></div>');
+    $('#bottomNav').insertAdjacentHTML('beforeend', `
+      <button class="bottom-nav-item" id="navShowMe" data-target="showme" onclick="openShowMe()">
+        <span class="bottom-nav-icon">🔧</span>
+        <span class="bottom-nav-label">نمایش / توضیح<br><span dir="ltr">Show/Tell</span></span>
+      </button>
+    `);
+  }
+
+  window.openShowMe = function() {
+    state.showMeFilter = 'all';
+    showView('showme');
+    renderShowMeView();
+  };
+
+  function renderShowMeView() {
+    const container = $('#showmeContainer');
+    const questions = (window.SHOW_ME_TELL_ME || []).filter(q => state.showMeFilter === 'all' || q.type === state.showMeFilter);
+    const filters = [
+      ['all', 'همه / All'],
+      ['tell', 'توضیح بده / Tell'],
+      ['show', 'نشان بده / Show'],
+    ];
+
+    let html = `<div style="max-width:900px;margin:0 auto;padding:20px 16px 100px">
+      <div style="text-align:center;margin-bottom:20px">
+        <h1 class="section-title" style="margin-bottom:4px">🔧 نمایش بده / توضیح بده</h1>
+        <p class="section-title-en">Show Me / Tell Me</p>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:20px">
+        ${filters.map(([id, label]) => `<button class="showme-filter" data-filter="${id}" style="border:1px solid ${state.showMeFilter === id ? '#4361ee' : '#dfe3ea'};background:${state.showMeFilter === id ? '#4361ee' : '#fff'};color:${state.showMeFilter === id ? '#fff' : '#444'};border-radius:20px;padding:8px 14px;font:inherit;font-size:13px;font-weight:600;cursor:pointer">${label}</button>`).join('')}
+      </div><div style="display:grid;gap:12px">`;
+
+    if (!questions.length) {
+      html += '<div style="background:#fff;border:1px solid #e8ebf0;border-radius:14px;padding:28px;text-align:center;color:#777">سؤالی موجود نیست / No questions available</div>';
+    }
+
+    questions.forEach(q => {
+      const isShow = q.type === 'show';
+      html += `<div style="background:#fff;border:1px solid #e8ebf0;border-radius:14px;box-shadow:0 3px 12px rgba(30,40,70,.06);overflow:hidden">
+        <button class="showme-card-toggle" aria-expanded="false" style="width:100%;border:0;background:#fff;padding:16px;text-align:inherit;font:inherit;cursor:pointer;color:#1a1a2e">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+            <span style="background:${isShow ? '#eef9f1' : '#f2efff'};color:${isShow ? '#16803a' : '#6542b5'};border-radius:20px;padding:5px 10px;font-size:12px;font-weight:700">${isShow ? 'Show 👆' : 'Tell 🗣️'}</span>
+            <span class="showme-arrow" style="color:#4361ee;font-size:18px">⌄</span>
+          </div>
+          <div style="font-weight:700;line-height:1.8">${escapeHtml(q.questionFa)}</div>
+          <div dir="ltr" style="text-align:left;color:#667085;font-size:14px;line-height:1.6;margin-top:4px">${escapeHtml(q.questionEn)}</div>
+        </button>
+        <div class="showme-answer" hidden style="border-top:1px solid #eef0f4;padding:16px;background:#fafbff">
+          <div style="font-weight:700;color:#4361ee;margin-bottom:8px">پاسخ / Answer</div>
+          <div style="line-height:1.9">${escapeHtml(q.answerFa)}</div>
+          <div dir="ltr" style="text-align:left;color:#596274;line-height:1.7;margin-top:10px">${escapeHtml(q.answerEn)}</div>
+          <div style="margin-top:14px;padding:12px;background:#fff8e7;border-radius:10px;border-right:3px solid #f4b942">
+            <div style="font-weight:700;margin-bottom:5px">نکته / Tip</div>
+            <div style="line-height:1.8">${escapeHtml(q.tipFa)}</div>
+            <div dir="ltr" style="text-align:left;color:#596274;line-height:1.6;margin-top:5px">${escapeHtml(q.tipEn)}</div>
+          </div>
+        </div>
+      </div>`;
+    });
+    container.innerHTML = html + '</div></div>';
+
+    $$('.showme-filter').forEach(btn => btn.addEventListener('click', () => {
+      state.showMeFilter = btn.dataset.filter;
+      renderShowMeView();
+    }));
+    $$('.showme-card-toggle').forEach(btn => btn.addEventListener('click', () => {
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!expanded));
+      btn.nextElementSibling.hidden = expanded;
+      btn.querySelector('.showme-arrow').textContent = expanded ? '⌄' : '⌃';
+    }));
   }
 
   // =============================================
@@ -1326,6 +1406,10 @@
   // =============================================
   function escapeAttr(str) {
     return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function escapeHtml(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   function shuffleArray(arr) {
